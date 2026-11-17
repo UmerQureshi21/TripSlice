@@ -1,4 +1,4 @@
-# Tidier AI service
+# TripSlice AI service
 
 Owns every TwelveLabs call and the retrieval side of search. The Spring Boot backend calls it
 over HTTP; it is not exposed to browsers. It is the only writer of the `embeddings` table.

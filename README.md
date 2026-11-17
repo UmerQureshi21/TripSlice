@@ -1,4 +1,4 @@
-# 🎬 Tidier — AI-Powered Vacation Video Montages  
+# 🎬 TripSlice — AI-Powered Vacation Video Montages  
 
 ![Java](https://img.shields.io/badge/Java-21+-red?logo=java&logoColor=white)  
 ![Node.js](https://img.shields.io/badge/Node.js-18+-green?logo=node.js&logoColor=white)  
@@ -9,11 +9,11 @@
 ---
 
 Tired of scrubbing through hours of shaky vacation footage just to find those few golden moments?  
-**Tidier** does the heavy lifting for you.  
+**TripSlice** does the heavy lifting for you.  
 
 Upload your long, cluttered vacation videos → pick a topic (like *Eiffel Tower* 🌍 or *ocean views* 🌊) → get back a perfectly curated montage of just those moments.  
 
-I built Tidier after coming back from a family trip to Paris, when I wanted *just* the Eiffel Tower clips without digging through endless video files. Tidier made it effortless.  
+I built TripSlice after coming back from a family trip to Paris, when I wanted *just* the Eiffel Tower clips without digging through endless video files. TripSlice made it effortless.  
 
 Under the hood:  
 - 🧠 Uses [TwelveLabs](https://twelvelabs.io) AI video understanding API to find timestamped segments.  
@@ -25,7 +25,7 @@ Under the hood:
 
 ## 🚀 Prerequisites  
 
-Before running Tidier, make sure you’ve got these installed:  
+Before running TripSlice, make sure you’ve got these installed:  
 
 - **Node.js & npm**  
 - **Java 21+**  

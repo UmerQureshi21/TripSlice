@@ -51,7 +51,7 @@ export default function NotFoundPage() {
         {/* Decorative line */}
         <div className="mt-16 flex items-center justify-center gap-4">
           <div className="h-px w-16 bg-gradient-to-r from-transparent to-[#925CFE]"></div>
-          <span className="text-[#925CFE] text-sm font-medium">Tidier</span>
+          <span className="text-[#925CFE] text-sm font-medium">TripSlice</span>
           <div className="h-px w-16 bg-gradient-to-l from-transparent to-[#925CFE]"></div>
         </div>
       </div>

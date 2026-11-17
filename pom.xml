@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.umerqureshicodes</groupId>
-	<artifactId>Tidier</artifactId>
+	<artifactId>TripSlice</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>Tidier</name>
-	<description>Tidier</description>
+	<name>TripSlice</name>
+	<description>TripSlice</description>
 	<url/>
 	<licenses>
 		<license/>

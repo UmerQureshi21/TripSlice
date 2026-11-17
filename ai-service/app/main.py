@@ -34,7 +34,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Tidier AI service", lifespan=lifespan)
+app = FastAPI(title="TripSlice AI service", lifespan=lifespan)
 
 
 def require_service_key(x_service_key: str = Header(default="")) -> None:

@@ -127,7 +127,7 @@ class VideoIntegrationTest extends IntegrationTestBase {
     @Test
     void refusesUploadsOnceTheGlobalMinutesAreUsedUp() throws Exception {
         TestUser user = newUser();
-        limitRepo.save(new Limit(600L * 60 * 1000 - 1000));
+        limitRepo.save(new Limit(360L * 60 * 1000 - 1000));
         mvc.perform(as(upload(part(sampleMp4, "a.mp4", "video/mp4")), user))
                 .andExpect(status().isTooManyRequests());
         verify(aiClient, never()).indexVideo(anyString());
@@ -141,6 +141,8 @@ class VideoIntegrationTest extends IntegrationTestBase {
                 .andExpect(status().isBadGateway());
         verify(s3Client).deleteObject(any(software.amazon.awssdk.services.s3.model.DeleteObjectRequest.class));
         assertThat(videoRepo.findAllByUserUsername(user.email())).isEmpty();
+        // TwelveLabs indexed nothing, so the reserved minutes were given back
+        assertThat(limitRepo.findById(1L).orElseThrow().getTotalVideoMillis()).isZero();
     }
 
     @Test

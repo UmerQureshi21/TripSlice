@@ -10,7 +10,12 @@ import {
 } from "../services/videoService";
 import { errorMessage } from "../services/errors";
 import ErrorBanner from "./ErrorBanner";
-import { UPLOAD_RULES, validateUpload } from "../limits";
+import {
+  MAX_FILES_PER_UPLOAD,
+  MAX_VIDEOS_TOTAL,
+  validateUpload,
+} from "../limits";
+import InfoPopover from "./InfoPopover";
 
 export default function Upload() {
   const [prevFiles, setPrevFiles] = useState<VideoRequestDTO[]>([]);
@@ -49,8 +54,8 @@ export default function Upload() {
   async function handleFileInput(e: React.ChangeEvent<HTMLInputElement>) {
     const input = e.target;
     if (!input.files || input.files.length === 0) return;
-    const files = input.files;
-    const list = Array.from(files);
+    // Copied first: input.files is live and empties when the input is reset below
+    const list = Array.from(input.files);
     // Lets the same file be picked again after fixing a problem
     input.value = "";
 
@@ -63,7 +68,7 @@ export default function Upload() {
 
     setUploadFileNames(list.map((f) => f.name));
     setUploading(true);
-    const error = await uploadVideos(files);
+    const error = await uploadVideos(list);
     setUploading(false);
     setUploadError(error);
     // Even a partly failed upload may have saved some videos
@@ -75,9 +80,10 @@ export default function Upload() {
     <div className="w-full ">
       <div className="relative w-full min-h-[100px] bg-page prompt-section flex flex-col items-center">
         <div className="w-full pt-[40px] bg-page flex flex-col items-center">
+          <div className="w-[90%] md:w-[60%] mt-[-20px] flex items-center gap-[12px]">
           <button
             disabled={uploading || checking}
-            className="hover:cursor-pointer mt-[-20px] hover:shadow-[0_0_10px_white] shadow-[0_0_0_white] transition duration-350 ease relative w-[60%] bg-[#925CFE] px-[30px] py-[15px] rounded-[20px] poppins-font text-white text-[20px]"
+            className="hover:cursor-pointer hover:shadow-[0_0_10px_white] shadow-[0_0_0_white] transition duration-350 ease relative flex-1 bg-[#925CFE] px-[30px] py-[15px] rounded-[20px] poppins-font text-white text-[20px]"
           >
             <input
               type="file"
@@ -90,15 +96,24 @@ export default function Upload() {
             />
             {checking ? "Checking videos..." : uploading ? "Uploading..." : "Upload Videos"}
           </button>
-          <p className="pt-[12px] w-[90%] text-muted text-sm text-center">
-            {UPLOAD_RULES} You have {totalVids} of 15.
+          <InfoPopover label="Upload rules">
+            <p className="font-semibold text-ink mb-[6px]">Before you upload</p>
+            <ul className="list-disc pl-[18px] space-y-[4px]">
+              <li>Up to {MAX_FILES_PER_UPLOAD} videos at a time, {MAX_VIDEOS_TOTAL} in total</li>
+              <li>Each video 3 seconds to 2 minutes long</li>
+              <li>At most 200MB per upload</li>
+            </ul>
+            <p className="mt-[8px] text-muted">
+              Videos need to be uploaded here before you can use them in a montage. They become
+              searchable a minute or two after uploading.
+            </p>
+          </InfoPopover>
+          </div>
+          <p className="pt-[12px] pb-[20px] text-muted text-sm text-center">
+            {totalVids} of {MAX_VIDEOS_TOTAL} videos
           </p>
-          <h1 className="py-[15px] w-[90%] text-ink font-normal sm:w-full text-center">
-            Before you can use parts of your video for a montage, you must
-            upload it first, for proper analyzing capabilities
-          </h1>
           {selectionErrors.length > 0 ? (
-            <div role="alert" className="mb-[15px] w-[90%] md:w-[65%] rounded-[20px] border border-amber-500 bg-amber-500/10 px-[20px] py-[15px] text-amber-300">
+            <div role="alert" className="mb-[15px] w-[90%] md:w-[65%] rounded-[20px] border border-amber-500 bg-amber-500/10 px-[20px] py-[15px] text-amber-300 light:text-amber-800">
               <p className="font-bold mb-[6px]">Nothing was uploaded. Please fix these first:</p>
               <ul className="list-disc pl-[20px] text-left">
                 {selectionErrors.map((message) => (
@@ -108,7 +123,7 @@ export default function Upload() {
             </div>
           ) : null}
           {uploadError ? (
-            <div role="alert" className="mb-[15px] w-[90%] md:w-[65%] rounded-[20px] border border-red-500 bg-red-500/10 px-[20px] py-[15px] text-red-400 text-center">
+            <div role="alert" className="mb-[15px] w-[90%] md:w-[65%] rounded-[20px] border border-red-500 bg-red-500/10 px-[20px] py-[15px] text-red-400 light:text-red-700 text-center">
               {uploadError}
             </div>
           ) : null}

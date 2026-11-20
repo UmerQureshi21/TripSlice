@@ -9,7 +9,7 @@ import java.util.Optional;
 public class LimitService {
 
     private final LimitRepo limitRepo;
-    private final long maxMillis = 600L * 60L * 1000L; // 600 minutes
+    private final long maxMillis = 360L * 60L * 1000L; // 360 minutes (6 hours) of video across all users
     // TwelveLabs' free plan minutes are cumulative and don't come back when videos are deleted,
     // so this total is never decreased
 
@@ -32,6 +32,16 @@ public class LimitService {
 
         limit.setTotalVideoMillis(newTotal);
         return false;
+    }
+
+    /**
+     * Gives back minutes reserved for a video that TwelveLabs never indexed (indexing was refused
+     * or failed), since those minutes weren't used.
+     */
+    @Transactional
+    public void release(long videoDuration) {
+        limitRepo.getSingletonForUpdate().ifPresent(limit ->
+                limit.setTotalVideoMillis(Math.max(0, limit.getTotalVideoMillis() - videoDuration)));
     }
 
 }

@@ -23,9 +23,26 @@ import { clearVideoCache } from "./services/videoService";
 import { clearMontageCache } from "./services/montageService";
 import { ThemeSync } from "./components/Theme";
 
+// Shown only on logged-in pages, for the moment it takes to restore the session
+function SessionCheck() {
+  return (
+    <div className="poppins-font w-full min-h-screen bg-page flex items-center justify-center text-muted" role="status">
+      Checking your session...
+    </div>
+  );
+}
+
 // Wrapper component that uses useLocation
 function AppContent() {
   const location = useLocation();
+  // The session is restored in the background, so public pages never wait on the backend
+  const [checkingSession, setCheckingSession] = useState(() => !tokenManager.hasToken());
+
+  useEffect(() => {
+    if (!checkingSession) return;
+    restoreSession().finally(() => setCheckingSession(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (location.pathname === "/account" || location.pathname === "/") {
@@ -37,7 +54,7 @@ function AppContent() {
   // Helper component for protected routes
   const ProtectedLayout = () => {
     if (!tokenManager.hasToken()) {
-      return <Navigate to="/account" replace />;
+      return checkingSession ? <SessionCheck /> : <Navigate to="/account" replace />;
     }
     return <RootLayout />;
   };
@@ -65,32 +82,15 @@ function AppContent() {
   );
 }
 
+// Renders straight away; nothing here waits for the backend
 export default function App() {
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  useEffect(() => {
-    const initializeApp = async () => {
-      await restoreSession();
-      setIsInitialized(true);
-    };
-
-    initializeApp();
-  }, []);
-
-  if (!isInitialized) {
-    return (
-      <div className="poppins-font text-ink w-full min-h-screen bg-page font-bold">
-        Loading...
-      </div>
-    );
-  }
-
-  const router = createBrowserRouter([
-    {
-      path: "*",
-      element: <AppContent />,
-    },
-  ]);
-
+  const [router] = useState(() =>
+    createBrowserRouter([
+      {
+        path: "*",
+        element: <AppContent />,
+      },
+    ])
+  );
   return <RouterProvider router={router} />;
 }

@@ -6,6 +6,9 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  // The backend only accepts requests from this exact origin (FRONTEND_HOST), so never silently
+  // move to another port when 5173 is busy, fail instead so it's obvious
+  server: { port: 5173, strictPort: true },
   test: {
     environment: 'jsdom',
     globals: true,

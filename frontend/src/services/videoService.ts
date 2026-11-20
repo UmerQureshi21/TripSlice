@@ -20,7 +20,7 @@ export async function getAllVideos(): Promise<VideoRequestDTO[]> {
 }
 
 // Returns null when every video was saved, otherwise the message to show the user
-export async function uploadVideos(files: FileList): Promise<string | null> {
+export async function uploadVideos(files: File[] | FileList): Promise<string | null> {
   const list = Array.from(files);
   const request = new FormData();
   for (const file of list) {

@@ -11,8 +11,6 @@ export const MAX_TOPIC_LENGTH = 100;
 export const MAX_TITLE_LENGTH = 60;
 export const MAX_SEARCH_LENGTH = 200;
 
-export const UPLOAD_RULES =
-  "Up to 5 videos at a time and 15 in total. Each video must be 3 seconds to 2 minutes long, and one upload can be at most 200MB.";
 
 /**
  * Reads a video's length in the browser. Resolves null when the browser can't tell

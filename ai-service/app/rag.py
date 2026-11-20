@@ -83,4 +83,7 @@ def search(owner_id: int, kind: str, query: str, limit: int) -> list[tuple[int, 
             best[ref_id] = (text, score)
 
     ranked = sorted(best.items(), key=lambda item: item[1][1], reverse=True)
-    return [(ref_id, text, score) for ref_id, (text, score) in ranked[:limit]]
+    if not ranked:
+        return []
+    floor = ranked[0][1][1] * settings.relative_cutoff
+    return [(ref_id, text, score) for ref_id, (text, score) in ranked[:limit] if score >= floor]

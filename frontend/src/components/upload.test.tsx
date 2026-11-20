@@ -39,7 +39,12 @@ describe("Upload", () => {
   it("lists the library and the upload rules", async () => {
     render(<VideoLibraryPage />);
     expect(await screen.findByText("clip-1.mp4")).toBeInTheDocument();
-    expect(screen.getByText(/Each video must be 3 seconds to 2 minutes long/)).toHaveTextContent("You have 2 of 15.");
+    expect(screen.getByText("2 of 15 videos")).toBeInTheDocument();
+    // The rules live in a bubble behind the "i" button, not on the page
+    expect(screen.queryByText("Each video 3 seconds to 2 minutes long")).toBeNull();
+    fireEvent.click(screen.getByLabelText("Upload rules"));
+    expect(screen.getByRole("dialog")).toHaveTextContent("Each video 3 seconds to 2 minutes long");
+    expect(screen.getByRole("dialog")).toHaveTextContent("At most 200MB per upload");
     expect(screen.getByText("Not searchable yet")).toBeInTheDocument();
   });
 
@@ -59,8 +64,16 @@ describe("Upload", () => {
     vi.mocked(uploadVideos).mockReturnValue(new Promise((r) => (finish = r)));
     render(<Upload />);
     await screen.findByText("clip-1.mp4");
-    pick([videoFile("new.mp4")]);
+    // Like a real browser: input.files is live and empties when the input's value is reset
+    const picked = [videoFile("new.mp4"), videoFile("two.mp4")];
+    const input = screen.getByLabelText("Upload videos") as HTMLInputElement;
+    let cleared = false;
+    Object.defineProperty(input, "files", { configurable: true, get: () => (cleared ? [] : picked) });
+    Object.defineProperty(input, "value", { configurable: true, get: () => "", set: () => { cleared = true; } });
+    fireEvent.change(input);
     expect(await screen.findByText("Upload Progress")).toBeInTheDocument();
+    // The files that were picked are sent, even though the input was reset before uploading
+    expect(uploadVideos).toHaveBeenCalledWith(picked);
     expect(screen.getByRole("button", { name: /Uploading/ })).toBeDisabled();
     await act(async () => finish(null));
     await waitFor(() => expect(getAllVideos).toHaveBeenCalledTimes(2));

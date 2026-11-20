@@ -96,7 +96,14 @@ cd frontend && npm run coverage
 
 ## 🚂 Deploying on Railway
 
-Create three services from this repo: Postgres, **backend** (root directory `/`), and **ai-service** (root directory `/ai-service`). Each one picks up its own `railway.toml`. Only the backend gets a public domain.
+Production runs on Railway (project `tripslice`): Postgres, **backend** (root directory `/`), and **ai-service** (root directory `/ai-service`). Both app services deploy automatically from `main`. Their build and health-check settings live in Railway itself, since `railway.toml` is deprecated:
+
+| Service | Dockerfile | Health check | Replicas |
+|---|---|---|---|
+| backend | `Dockerfile` | `/actuator/health` | 1 (the in-memory rate limits need a single instance) |
+| ai-service | `ai-service/Dockerfile` | `/health` | 1 |
+
+Only the backend has a public domain; the AI service is reachable only over Railway's private network. The frontend stays on Vercel (project `tidier`) and deploys from `main`.
 
 | Service | Variable | Value |
 |---|---|---|

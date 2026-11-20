@@ -8,5 +8,5 @@ RUN useradd --system --uid 10001 app
 USER app
 ENV PORT=8000
 EXPOSE 8000
-# "::" listens on IPv6 and IPv4, Railway's private network has used IPv6
-CMD ["sh", "-c", "uvicorn app.main:app --host :: --port ${PORT} --proxy-headers"]
+# One socket for IPv4 and IPv6: Railway's health check uses IPv4, its private network IPv6
+CMD ["python", "-m", "app.serve"]

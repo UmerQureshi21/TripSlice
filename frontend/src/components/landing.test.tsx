@@ -46,14 +46,14 @@ describe("HomePage", () => {
     expect(screen.getByText("Start Creating!").closest("a")).toHaveAttribute("href", "/account");
     expect(screen.queryByText(/Ready to relive your/)).toBeNull();
     expect(document.getElementById("how-it-works")).not.toBeNull();
-    expect(document.querySelector("video")?.getAttribute("src")).toContain("trip-slice-desktop");
+    expect(document.querySelector("video")?.getAttribute("src")).toBe("/trip-slice-desktop.mp4");
     expect(screen.getByText("What videos can I upload?")).toBeInTheDocument();
   });
 
   it("uses the phone demo on small screens", () => {
     setWidth(390);
     renderWithRouter(<HomePage />);
-    expect(document.querySelector("video")?.getAttribute("src")).toBe("/trip-slice-video.mov");
+    expect(document.querySelector("video")?.getAttribute("src")).toBe("/trip-slice-mobile.mp4");
     expect(screen.getByText("TripSlice")).toBeInTheDocument(); // text logo on mobile
     expect(screen.getByText("Start Creating!")).toBeInTheDocument();
   });

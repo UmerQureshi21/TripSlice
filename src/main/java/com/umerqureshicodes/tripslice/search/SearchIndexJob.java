@@ -7,6 +7,8 @@ import com.umerqureshicodes.tripslice.montages.MontageService;
 import com.umerqureshicodes.tripslice.videos.Video;
 import com.umerqureshicodes.tripslice.videos.VideoRepo;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,7 @@ import java.util.List;
 @Component
 public class SearchIndexJob {
 
+    private static final Logger log = LoggerFactory.getLogger(SearchIndexJob.class);
     private static final int MAX_ATTEMPTS = 5;
 
     private final VideoRepo videoRepo;
@@ -55,14 +58,14 @@ public class SearchIndexJob {
                 if (video.getAssetId() == null) {
                     video.setAssetId(aiClient.getAssetId(video.getVideoId()));
                     if (video.getAssetId() == null) {
-                        System.out.println("No asset id yet for " + video.getName() + ", attempt " + video.getSummaryAttempts());
+                        log.info("No asset id yet for video {}, attempt {}", video.getId(), video.getSummaryAttempts());
                         continue;
                     }
                 }
 
                 summary = aiClient.summarize(video.getAssetId());
                 if (summary == null) {
-                    System.out.println("No summary yet for " + video.getName() + ", attempt " + video.getSummaryAttempts());
+                    log.info("No summary yet for video {}, attempt {}", video.getId(), video.getSummaryAttempts());
                     continue;
                 }
                 video.setSummary(summary);
@@ -70,7 +73,7 @@ public class SearchIndexJob {
 
             if (aiClient.indexDocument(video.getUser().getId(), AiClient.KIND_VIDEO, video.getId(), summary)) {
                 video.setEmbedded(true);
-                System.out.println(video.getName() + " is now searchable");
+                log.info("Video {} is now searchable", video.getId());
             }
         }
     }
@@ -80,7 +83,7 @@ public class SearchIndexJob {
             if (aiClient.indexDocument(montage.getUser().getId(), AiClient.KIND_MONTAGE, montage.getId(),
                     montageService.buildMontageText(montage))) {
                 montage.setEmbedded(true);
-                System.out.println("Embedded montage " + montage.getName());
+                log.info("Embedded montage {}", montage.getId());
             }
         }
     }

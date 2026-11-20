@@ -1,63 +1,54 @@
 import axiosInstance from "./refreshTokenAxios";
 import type { VideoRequestDTO } from "../Types";
+import { errorMessage } from "./errors";
 
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+// Shorter than the 10 minute life of the S3 preview links inside, so cached previews never expire
+const CACHE_DURATION = 4 * 60 * 1000;
 
 let cachedVideos: VideoRequestDTO[] | null = null;
 let cacheTime: number = 0;
 
 export async function getAllVideos(): Promise<VideoRequestDTO[]> {
+  const now = Date.now();
+  if (cachedVideos && now - cacheTime < CACHE_DURATION) {
+    return cachedVideos;
+  }
+  const res = await axiosInstance.get("/videos");
+  cachedVideos = res.data;
+  cacheTime = now;
+  return res.data;
+}
+
+// Returns null when every video was saved, otherwise the message to show the user
+export async function uploadVideos(files: FileList): Promise<string | null> {
+  const list = Array.from(files);
+  const request = new FormData();
+  for (const file of list) {
+    request.append("files", file);
+  }
   try {
-    const now = Date.now();
-
-    // Check if cache exists and is still valid
-    if (cachedVideos && now - cacheTime < CACHE_DURATION) {
-      console.log("Using cached videos");
-      return cachedVideos;
-    }
-
-    // Fetch new data
-    console.log("Fetching fresh videos from API");
-
-    const res = await axiosInstance.get("/videos");
-
-    const fileDetails = res.data;
-    fileDetails.forEach((file: VideoRequestDTO) => {
-      console.log(file.previewUrl);
-    });
-
-    // Store in cache
-    cachedVideos = fileDetails;
-    cacheTime = now;
-
-    return fileDetails;
+    const res = await axiosInstance.post("/videos", request);
+    const saved: VideoRequestDTO[] = Array.isArray(res.data) ? res.data : [];
+    if (saved.length >= list.length) return null;
+    // Some videos were saved and some weren't, say which
+    const savedNames = new Set(saved.map((v) => v.name));
+    const missing = list.filter((f) => !savedNames.has(f.name)).map((f) => `"${f.name}"`);
+    return `${saved.length} of ${list.length} videos were uploaded. ${
+      missing.length > 0 ? missing.join(", ") : "The rest"
+    } couldn't be processed, please try ${missing.length === 1 ? "it" : "them"} again.`;
   } catch (err) {
-    console.error("Failed to fetch videos:", err);
-    throw err;
+    return errorMessage(err, "Upload failed. Please try again.");
   }
 }
 
-export async function uploadVideos(files: FileList): Promise<boolean> {
+// Returns null on success, otherwise the message to show the user
+export async function deleteVideo(id: number): Promise<string | null> {
   try {
-    const request = new FormData();
-
-    for (let [index, file] of Object.entries(files)) {
-      console.log(`File ${index}: ${file.name}`);
-      request.append("files", file);
-    }
-
-    const res = await axiosInstance.post("/videos", request);
-    const data: VideoRequestDTO[] = res.data;
-    if (data.length == 0) {
-      console.log("rate limit");
-      return false;
-    } else {
-      console.log("Upload successful:", res.data);
-      return true;
-    }
+    await axiosInstance.delete(`/videos/${id}`);
+    clearVideoCache();
+    return null;
   } catch (err) {
-    console.error("Upload failed:", err);
-    throw err;
+    return errorMessage(err, "The video couldn't be deleted. Please try again.");
   }
 }
 

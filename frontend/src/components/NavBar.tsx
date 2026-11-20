@@ -3,6 +3,7 @@ import { NavLink } from "react-router";
 import PopUp from "./PopUp";
 import NavBarLink from "./NavBarLink";
 import Logout from "./Logout";
+import { ThemeToggle } from "./Theme";
 
 export default function Navbar() {
   const [clientWidth, setClientWidth] = useState<number>(window.innerWidth);
@@ -49,7 +50,7 @@ export default function Navbar() {
 
   return (
     <>
-      <div className="poppins-font fixed w-full border-b-[1px] border-b-black h-[75px] z-[500] bg-[#000] flex items-center justify-between ">
+      <div className="poppins-font fixed w-full border-b-[1px] border-b-line h-[75px] z-[500] bg-page flex items-center justify-between ">
         {/* Logo Section */}
         <div
           className={`flex items-center justify-around group
@@ -60,7 +61,7 @@ export default function Navbar() {
             <img
               src="/montage-icon-white.png"
               alt=""
-              className="w-[45px] h-[45px]  rounded-lg transition-all duration-300 
+              className="w-[45px] h-[45px] light:invert rounded-lg transition-all duration-300 
                          group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-lg"
             />
             {/* Glow effect on hover */}
@@ -71,7 +72,10 @@ export default function Navbar() {
           </NavLink>
         </div>
         {clientWidth < 900 ? (
-          <PopUp />
+          <div className="flex items-center gap-[6px]">
+            <ThemeToggle />
+            <PopUp />
+          </div>
         ) : (
           <div className="w-[68%]  relative right-[20px] flex items-center justify-between">
             {pages.map((page, index) => (
@@ -86,6 +90,7 @@ export default function Navbar() {
               />
             ))}
             <Logout fontSize={linkFont} colour={colour} />
+            <ThemeToggle />
           </div>
         )}
       </div>

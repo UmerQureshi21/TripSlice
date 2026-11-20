@@ -1,5 +1,53 @@
 @import "tailwindcss";
 
+/* `light:` classes apply when the app is switched to the light palette (the landing page never is) */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+/* Colours by job, so the light palette below can swap them:
+     page     the background behind everything
+     surface  big panels (forms, lists)
+     raised   cards sitting on a panel or the page
+     sunken   inset fills: inputs, progress tracks, stat boxes
+     ink      main text, and faint tints of it (ink/10 ...)
+     ink-soft secondary headings
+     muted    secondary text
+     faint    hints and placeholders
+     line     hairline borders */
+@theme {
+  --color-page: #000000;
+  --color-surface: #141414;
+  --color-raised: #222222;
+  --color-sunken: #111111;
+  --color-ink: #ffffff;
+  --color-ink-soft: #d1d5db;
+  --color-muted: #9ca3af;
+  --color-faint: #6b7280;
+  --color-line: rgba(255, 255, 255, 0.12);
+  --color-disabled: #222222;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-page: #f4f2f9;
+  --color-surface: #ffffff;
+  --color-raised: #ffffff;
+  --color-sunken: #ece9f4;
+  --color-ink: #1b1530;
+  --color-ink-soft: #3d3653;
+  --color-muted: #5f5874;
+  --color-faint: #8b8599;
+  --color-line: rgba(27, 21, 48, 0.12);
+  --color-disabled: #e4e0ee;
+}
+
+body {
+  background: var(--color-page);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -18,26 +66,13 @@
   content: "";
   width: 100%;
   height: 30px;
-  background-color: rgb(0, 0, 0);
+  background-color: var(--color-page);
   top: -25px;
   left: 0;
   border-top-left-radius: 150px;
   border-top-right-radius: 150px;
 }
 
-:root {
-  --body-color: #e4e9f7;
-  --sidebar-color: #222222;
-  --primary-color: #925cfe;
-  --primary-color-light: #f6f5ff;
-  --toggle-color: #dddd;
-  --text-color: #fff;
-
-  --tran-02: all 0.2s ease;
-  --tran-03: all 0.3s ease;
-  --tran-04: all 0.4s ease;
-  --tran-05: all 0.5s ease;
-}
 
 
 .navbar-link::before {
@@ -53,4 +88,29 @@
 
 .navbar-link:hover::before {
   width: 100%; /* Expands equally in both directions */
+}
+
+/* Footer "How it works" link glides to the section */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Each rotating idea on the landing page fades up into place */
+@keyframes idea-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.idea-in {
+  animation: idea-in 350ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .idea-in {
+    animation: none;
+  }
 }

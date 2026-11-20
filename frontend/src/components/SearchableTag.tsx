@@ -16,7 +16,7 @@ export default function SearchableTag({
       className={`inline-flex items-center gap-[6px] self-start rounded-full border px-[10px] py-[3px] poppins-font text-[11px] transition-colors ${
         searchable
           ? "border-green-500/30 bg-green-500/10 text-green-400"
-          : "border-white/10 bg-white/5 text-gray-500"
+          : "border-line bg-ink/5 text-faint"
       } ${className}`}
     >
       {searchable ? (

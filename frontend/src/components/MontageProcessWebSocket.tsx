@@ -68,16 +68,16 @@ export default function MontageProgressWebSocket() {
   const progressPercent = (completedCount / steps.length) * 100;
 
   return (
-    <div className="w-full bg-black min-h-[700px] py-16 flex flex-col items-center justify-center gap-10">
+    <div className="w-full bg-page min-h-[700px] py-16 flex flex-col items-center justify-center gap-10">
       {/* Progress bar */}
       <div className="w-[80%] max-w-[500px]">
         <div className="flex justify-between mb-2">
-          <span className="text-sm text-gray-400">Progress</span>
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-muted">Progress</span>
+          <span className="text-sm text-muted">
             {Math.round(progressPercent)}%
           </span>
         </div>
-        <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
+        <div className="w-full h-3 bg-sunken rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-700 ease-out"
             style={{
@@ -137,7 +137,7 @@ export default function MontageProgressWebSocket() {
                   </svg>
                 </div>
               ) : (
-                <div className="w-8 h-8 rounded-full border-2 border-gray-600" />
+                <div className="w-8 h-8 rounded-full border-2 border-line" />
               )}
             </div>
 
@@ -147,8 +147,8 @@ export default function MontageProgressWebSocket() {
                 step.status === "completed"
                   ? "text-green-400"
                   : step.status === "active"
-                  ? "text-white font-medium"
-                  : "text-gray-500"
+                  ? "text-ink font-medium"
+                  : "text-faint"
               }`}
             >
               {step.label}
@@ -159,9 +159,9 @@ export default function MontageProgressWebSocket() {
 
       {/* Live log */}
       {logs.length > 0 && (
-        <div className="w-[80%] max-w-[500px] mt-4 border border-gray-800 rounded-lg p-4 max-h-[150px] overflow-y-auto">
+        <div className="w-[80%] max-w-[500px] mt-4 border border-line rounded-lg p-4 max-h-[150px] overflow-y-auto">
           {logs.map((log, i) => (
-            <p key={i} className="text-xs text-gray-400 font-mono leading-6">
+            <p key={i} className="text-xs text-muted font-mono leading-6">
               {log}
             </p>
           ))}

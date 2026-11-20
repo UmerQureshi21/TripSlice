@@ -1,11 +1,13 @@
 import { NavLink } from "react-router";
+import { ThemeToggle } from "../components/Theme";
 
 export default function NotFoundPage() {
   return (
-    <div className="poppins-font min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="poppins-font min-h-screen bg-page flex items-center justify-center p-4 relative overflow-hidden">
+      <ThemeToggle className="fixed top-[20px] right-[20px] z-50 border border-line bg-surface/80 backdrop-blur" />
       {/* Animated background elements */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#925CFE]/10 rounded-full blur-3xl animate-pulse"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#925CFE]/10 rounded-full blur-3xl animate-pulse delay-700"></div>
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#925CFE]/10 rounded-full blur-3xl animate-pulse light:hidden"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-[#925CFE]/10 rounded-full blur-3xl animate-pulse delay-700 light:hidden"></div>
 
       <div className="relative z-10 text-center max-w-2xl">
         {/* 404 Number */}
@@ -19,10 +21,10 @@ export default function NotFoundPage() {
 
         {/* Message */}
         <div className="mb-12">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+          <h2 className="text-3xl md:text-5xl font-bold text-ink mb-4">
             Oops! Page Not Found
           </h2>
-          <p className="text-gray-400 text-lg md:text-xl">
+          <p className="text-muted text-lg md:text-xl">
             {/* Looks like this montage got lost in the footage... */}
           </p>
         </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Carousel from "../components/Carousel";
 import LogIn from "../components/LogIn";
+import { ThemeToggle } from "../components/Theme";
 
 export default function LogInPage() {
   const IMAGE_HEIGHT = 350;
@@ -19,7 +20,8 @@ export default function LogInPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-gray-950 flex poppins-font">
+    <div className="relative min-h-screen bg-page flex poppins-font">
+      <ThemeToggle className="fixed top-[20px] right-[20px] z-50 border border-line bg-surface/80 backdrop-blur" />
       {windowWidth >= 1024 ? (
         <>
           <div className="absolute w-[50%] top-[30px] left-[100px] z-20">
@@ -44,9 +46,9 @@ export default function LogInPage() {
               width={`${IMAGE_HEIGHT}px`}
             />
             {/* Black fade overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/70 pointer-events-none light:hidden"></div>
           </div>
-          <h1 className="text-white text-[50px] font-thin  absolute bottom-[100px] right-[0] w-[40%]">
+          <h1 className="text-ink text-[50px] font-thin  absolute bottom-[100px] right-[0] w-[40%]">
             Find the moments that <span className="font-bold">matter.</span>
           </h1>
         </>

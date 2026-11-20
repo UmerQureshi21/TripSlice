@@ -89,6 +89,13 @@ public class JwtUtil {
                 .toString();
     }
 
+    /** The request path without the context path, the same with or without a servlet mapping. */
+    public static String pathOf(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String context = request.getContextPath();
+        return context != null && !context.isEmpty() && uri.startsWith(context) ? uri.substring(context.length()) : uri;
+    }
+
     public static boolean isLocalhost(String serverName) {
         return serverName.equals("localhost") || serverName.equals("127.0.0.1");
     }

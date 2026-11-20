@@ -1,4 +1,7 @@
 package com.umerqureshicodes.tripslice.users;
+
+import com.umerqureshicodes.tripslice.common.ApiException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -18,52 +21,27 @@ public class UserService implements UserDetailsService {
     }
 
     public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
-        if (!areCredentialsUnique(userRequestDTO )){
-            return new UserResponseDTO(null,null);
+        // One message for both cases, so sign up says as little as possible about who has an account
+        if (userRepo.findByUsername(userRequestDTO.username()).isPresent()
+                || userRepo.findByDisplayedName(userRequestDTO.displayedName()).isPresent()) {
+            throw new ApiException(HttpStatus.CONFLICT, "That email or display name is already in use.");
         }
         AppUser user = userRepo.save(new AppUser(
                 userRequestDTO.username(),
                 passwordEncoder.encode(userRequestDTO.password()),
                 userRequestDTO.displayedName()
-
         ));
-        return new UserResponseDTO(user.getUsername(),user.getDisplayedName());
-    }
-
-    public UserResponseDTO login(UserRequestDTO dto) {
-        Optional<AppUser> userOptional = userRepo.findByUsername(dto.username()) ;//userRepo.findByUsernameAndEmail(dto.username(), dto.username());
-        if (userOptional.isPresent()){
-            AppUser user = userOptional.get();
-            System.out.println("Email verified!");
-            return new UserResponseDTO(user.getUsername(),user.getDisplayedName());
-        }
-        System.out.println("Email not verified!");
-        return new UserResponseDTO(null,null);
-    }
-
-    private boolean areCredentialsUnique(UserRequestDTO userRequestDTO) {
-        Optional<AppUser> prevUserWithSameEmail = userRepo.findByUsername(userRequestDTO.username()) ;
-        if(prevUserWithSameEmail.isPresent()) {
-            return false;
-        }
-        Optional<AppUser> prevUserWithSameName = userRepo.findByDisplayedName(userRequestDTO.displayedName()) ;
-        if(prevUserWithSameName.isPresent()) {
-            return false;
-        }
-        return true;
+        return new UserResponseDTO(user.getUsername(), user.getDisplayedName());
     }
 
     public UserResponseDTO getUser(String email) {
         Optional<AppUser> user = userRepo.findByUsername(email);
-        if(user.isPresent()) {
-            return new UserResponseDTO(user.get().getUsername(),user.get().getDisplayedName());
-        }
-        return null;
+        return user.map(u -> new UserResponseDTO(u.getUsername(), u.getDisplayedName())).orElse(null);
     }
 
     @Override
     public AppUser loadUserByUsername(String username) throws UsernameNotFoundException {
         return userRepo.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 }

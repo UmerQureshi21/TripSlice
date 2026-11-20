@@ -4,6 +4,7 @@ The Spring Boot backend owns users, videos, montages, S3 and FFmpeg, and calls t
 over HTTP. This service is the only writer of the embeddings table.
 """
 
+import hmac
 import logging
 from contextlib import asynccontextmanager
 
@@ -34,12 +35,14 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="TripSlice AI service", lifespan=lifespan)
+# No /docs or /openapi.json, this service is internal and shouldn't describe itself to anyone
+app = FastAPI(title="TripSlice AI service", lifespan=lifespan, docs_url=None, redoc_url=None, openapi_url=None)
 
 
 def require_service_key(x_service_key: str = Header(default="")) -> None:
     """Only the backend may call this service, it is not exposed to browsers."""
-    if x_service_key != settings.service_key:
+    # Constant time, so the key can't be guessed byte by byte from response timings
+    if not hmac.compare_digest(x_service_key.encode(), settings.service_key.encode()):
         raise HTTPException(status_code=401, detail="Invalid service key")
 
 

@@ -34,6 +34,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             // The user's name (their email) is what convertAndSendToUser targets
             accessor.setUser(authResult);
         }
+        // The server is the only one that publishes, clients just subscribe to their own queue
+        if (accessor != null && StompCommand.SEND.equals(accessor.getCommand())) {
+            throw new BadCredentialsException("Clients may not send messages");
+        }
         return message;
     }
 }

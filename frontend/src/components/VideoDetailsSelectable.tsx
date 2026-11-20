@@ -38,7 +38,7 @@ interface SelectableFileDetailsProps {
       className={`flex flex-col w-full h-[450px] rounded-xl border-2 transition-all duration-300 overflow-hidden group ${
         isSelected
           ? "bg-[#925CFE]/10 border-[#925CFE] shadow-lg shadow-[#925CFE]/20"
-          : "bg-[#222222] border-[#222222] hover:border-[#925CFE]/50 hover:bg-[#222222]/90"
+          : "bg-raised border-raised light:border-line hover:border-[#925CFE]/50 hover:bg-raised/90"
       }`}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -59,21 +59,21 @@ interface SelectableFileDetailsProps {
 
       {/* File Info */}
       <div className="p-4 flex flex-col gap-3">
-        <h3 className="font-semibold text-base truncate text-gray-200 group-hover:text-white transition-colors">
+        <h3 className="font-semibold text-base truncate text-ink-soft group-hover:text-ink transition-colors">
           {name}
         </h3>
-        <div className="flex items-center gap-2 text-xs text-gray-400">
+        <div className="flex items-center gap-2 text-xs text-muted">
           <span>{formatTime(duration)}</span>
         </div>
-        <summary className="text-xs text-gray-500 line-clamp-2"></summary>
+        <summary className="text-xs text-faint line-clamp-2"></summary>
 
         {/* Selection Indicator */}
-        <div className="flex items-center gap-2 pt-2 border-t border-gray-700">
+        <div className="flex items-center gap-2 pt-2 border-t border-line">
           <div
             className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
               isSelected
                 ? "bg-[#925CFE] border-[#925CFE]"
-                : "border-gray-500 hover:border-[#925CFE]"
+                : "border-line hover:border-[#925CFE]"
             }`}
           >
             {isSelected && (
@@ -93,7 +93,7 @@ interface SelectableFileDetailsProps {
             )}
           </div>
           <span className={`text-xs font-medium ${
-            isSelected ? "text-[#925CFE]" : "text-gray-400"
+            isSelected ? "text-[#925CFE]" : "text-muted"
           }`}>
             {isSelected ? "Selected" : "Select"}
           </span>

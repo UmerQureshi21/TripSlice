@@ -1,0 +1,15 @@
+# Secrets
+**/application-secrets.properties
+**/.env
+# Build output and tooling
+target
+.git
+.idea
+.vscode
+.claude
+# Other services
+frontend
+ai-service
+*.pdf
+*.mov
+*.mp4

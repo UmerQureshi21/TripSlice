@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { logInOrSignUp } from "../services/userService";
+import Turnstile from "./Turnstile";
+import { TURNSTILE_SITE_KEY } from "../turnstileConfig";
 import { useNavigate } from "react-router";
 
 export default function LogIn() {
@@ -9,6 +11,8 @@ export default function LogIn() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [userName, setUserName] = useState("");
   const [error, setError] = useState("");
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const handleTurnstileToken = useCallback((token: string) => setTurnstileToken(token), []);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
@@ -17,6 +21,8 @@ export default function LogIn() {
 
     if (!userName.trim() && !isLogin) {
       errors.userName = "Name is required";
+    } else if (!isLogin && (userName.trim().length < 2 || userName.trim().length > 30)) {
+      errors.userName = "Name must be 2 to 30 characters";
     }
     if (!email.trim()) {
       errors.email = "Email is required";
@@ -25,8 +31,8 @@ export default function LogIn() {
     }
     if (!password) {
       errors.password = "Password is required";
-    } else if (password.length < 6) {
-      errors.password = "Password must be at least 6 characters";
+    } else if (!isLogin && (password.length < 8 || password.length > 72)) {
+      errors.password = "Password must be 8 to 72 characters";
     }
 
     if (!isLogin) {
@@ -52,11 +58,17 @@ export default function LogIn() {
 
       setFieldErrors({});
 
+      if (!isLogin && TURNSTILE_SITE_KEY && !turnstileToken) {
+        setError("Please complete the verification check.");
+        return;
+      }
+
       const userAuthMessage = await logInOrSignUp(
         isLogin,
         email,
         password,
-        userName
+        userName.trim(),
+        turnstileToken
       );
 
       if (userAuthMessage != "") {
@@ -74,8 +86,8 @@ export default function LogIn() {
   const clearFieldError = (field: string) => {
     setFieldErrors((prev) => {
       const updated = { ...prev };
-      const { [field]: _, ...rest } = updated;
-      return rest;
+      delete updated[field];
+      return updated;
     });
   };
 
@@ -87,24 +99,24 @@ export default function LogIn() {
       }}
     >
       <div className="relative">
-        <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-2xl blur-xl opacity-75 animate-pulse"></div>
+        <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 rounded-2xl blur-xl opacity-75 animate-pulse light:hidden"></div>
 
-        <div className="relative bg-black rounded-2xl p-8 border border-purple-500/30">
+        <div className="relative bg-page rounded-2xl p-8 border border-purple-500/30">
           <div className="text-center mb-8 flex flex-col justify-center items-center">
             <div className="flex gap-[15px] w-full justify-center">
-              <h1 className="text-[50px] font-bold text-white ">Trip Slice</h1>{" "}
+              <h1 className="text-[50px] font-bold text-ink ">Trip Slice</h1>{" "}
               <img
                 src="/montage-icon-white.png"
-                className="hidden sm:block sm:w-[15%] md:w-[11%]"
+                className="hidden sm:block sm:w-[15%] md:w-[11%] light:invert"
                 alt=""
               />
             </div>
-            <p className="text-white text-sm">
+            <p className="text-ink text-sm">
               {isLogin ? "Welcome back" : "Create your account"}
             </p>
           </div>
 
-          <div className="flex gap-2 mb-6 p-1 bg-gray-800/50 rounded-xl">
+          <div className="flex gap-2 mb-6 p-1 bg-sunken rounded-xl">
             <button
               onClick={() => {
                 setIsLogin(true);
@@ -114,7 +126,7 @@ export default function LogIn() {
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
                 isLogin
                   ? "bg-purple-600 text-white shadow-lg shadow-purple-500/50"
-                  : "text-gray-400 hover:text-white"
+                  : "text-muted hover:text-ink"
               }`}
             >
               Login
@@ -128,7 +140,7 @@ export default function LogIn() {
               className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-300 ${
                 !isLogin
                   ? "bg-purple-600 text-white shadow-lg shadow-purple-500/50"
-                  : "text-gray-400 hover:text-white"
+                  : "text-muted hover:text-ink"
               }`}
             >
               Sign Up
@@ -143,7 +155,7 @@ export default function LogIn() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">
+              <label className="block text-ink-soft text-sm font-medium mb-2">
                 Email
               </label>
               <input
@@ -153,7 +165,7 @@ export default function LogIn() {
                   setEmail(e.target.value);
                   clearFieldError("email");
                 }}
-                className={`w-full px-4 py-3 bg-gray-800/50 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all ${
+                className={`w-full px-4 py-3 bg-sunken border rounded-xl text-ink placeholder-faint focus:outline-none focus:ring-2 transition-all ${
                   fieldErrors.email
                     ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                     : "border-purple-500/30 focus:border-purple-500 focus:ring-purple-500/20"
@@ -167,7 +179,7 @@ export default function LogIn() {
 
             {isLogin ? null : (
               <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">
+                <label className="block text-ink-soft text-sm font-medium mb-2">
                   Name
                 </label>
                 <input
@@ -177,7 +189,7 @@ export default function LogIn() {
                     setUserName(e.target.value);
                     clearFieldError("userName");
                   }}
-                  className={`w-full px-4 py-3 bg-gray-800/50 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all ${
+                  className={`w-full px-4 py-3 bg-sunken border rounded-xl text-ink placeholder-faint focus:outline-none focus:ring-2 transition-all ${
                     fieldErrors.userName
                       ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                       : "border-purple-500/30 focus:border-purple-500 focus:ring-purple-500/20"
@@ -193,7 +205,7 @@ export default function LogIn() {
             )}
 
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">
+              <label className="block text-ink-soft text-sm font-medium mb-2">
                 Password
               </label>
               <input
@@ -203,7 +215,7 @@ export default function LogIn() {
                   setPassword(e.target.value);
                   clearFieldError("password");
                 }}
-                className={`w-full px-4 py-3 bg-gray-800/50 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all ${
+                className={`w-full px-4 py-3 bg-sunken border rounded-xl text-ink placeholder-faint focus:outline-none focus:ring-2 transition-all ${
                   fieldErrors.password
                     ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                     : "border-purple-500/30 focus:border-purple-500 focus:ring-purple-500/20"
@@ -219,7 +231,7 @@ export default function LogIn() {
 
             {!isLogin && (
               <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">
+                <label className="block text-ink-soft text-sm font-medium mb-2">
                   Confirm Password
                 </label>
                 <input
@@ -229,7 +241,7 @@ export default function LogIn() {
                     setConfirmPassword(e.target.value);
                     clearFieldError("confirmPassword");
                   }}
-                  className={`w-full px-4 py-3 bg-gray-800/50 border rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 transition-all ${
+                  className={`w-full px-4 py-3 bg-sunken border rounded-xl text-ink placeholder-faint focus:outline-none focus:ring-2 transition-all ${
                     fieldErrors.confirmPassword
                       ? "border-red-500/50 focus:border-red-500 focus:ring-red-500/20"
                       : "border-purple-500/30 focus:border-purple-500 focus:ring-purple-500/20"
@@ -244,16 +256,7 @@ export default function LogIn() {
               </div>
             )}
 
-            {isLogin && (
-              <div className="text-right">
-                <button
-                  type="button"
-                  className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
-                >
-                  Forgot password?
-                </button>
-              </div>
-            )}
+            {!isLogin && <Turnstile onToken={handleTurnstileToken} />}
 
             <button
               onClick={handleSubmit}

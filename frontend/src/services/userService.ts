@@ -3,81 +3,56 @@ import { tokenManager } from "./tokenManager";
 import type { UserRequestDTO } from "../Types";
 import { clearVideoCache } from "./videoService";
 import { clearMontageCache } from "./montageService";
+import { errorMessage } from "./errors";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
+
+async function generateToken(email: string, password: string): Promise<void> {
+  const tokenResponse = await axios.post(
+    `${backendURL}/generate-token`,
+    { username: email, password: password },
+    { withCredentials: true } // Send/receive the refresh token cookie
+  );
+  // The access token only ever lives in memory
+  tokenManager.setToken(tokenResponse.headers.authorization);
+}
 
 export async function logInOrSignUp(
   isLogin: boolean,
   email: string,
   password: string,
-  userName: string
+  userName: string,
+  turnstileToken: string = ""
 ): Promise<string> {
-  let errorMessage = "";
+  if (isLogin) {
+    try {
+      await generateToken(email, password);
+      return "";
+    } catch (err) {
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        return "Invalid username or password.";
+      }
+      return errorMessage(err, "Login failed. Please try again.");
+    }
+  }
+
   const request: UserRequestDTO = {
     username: email,
     password: password,
     displayedName: userName,
+    turnstileToken: turnstileToken,
   };
-
-  if (isLogin) {
-    try {
-      console.log("LOGIN REQUEST:", request);
-
-      const tokenResponse = await axios.post(
-        `${backendURL}/generate-token`,
-        {
-          username: email,
-          password: password,
-        },
-        {
-          withCredentials: true, // Send/receive cookies
-        }
-      );
-
-      // Extract and store access token in memory
-      const accessToken = tokenResponse.headers.authorization;
-      tokenManager.setToken(accessToken);
-      console.log("ACCESS TOKEN SET IN MEMORY");
-    } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response) {
-        if (err.response.status === 401) {
-          errorMessage = "Invalid username or password.";
-        } else {
-          errorMessage = `Server error: ${err.response.status}`;
-        }
-        console.error("REQUEST FAILED:", err.response);
-      } else {
-        errorMessage = "Network error. Please try again.";
-        console.error("REQUEST FAILED (no response):", err);
-      }
-    }
-  } else {
-    console.log("REGISTER REQUEST:", request);
-    const response = await axios.post(`${backendURL}/register`, request);
-    console.log("REGISTER SUCCESS:", response.data);
-
-    if (response.data["username"] != null) {
-      const tokenResponse = await axios.post(
-        `${backendURL}/generate-token`,
-        {
-          username: email,
-          password: password,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-
-      // Extract and store access token in memory
-      const accessToken = tokenResponse.headers.authorization;
-      tokenManager.setToken(accessToken);
-      console.log("ACCESS TOKEN SET IN MEMORY AFTER SIGNUP");
-    } else {
-      errorMessage = "email or username already used";
-    }
+  try {
+    await axios.post(`${backendURL}/register`, request);
+  } catch (err) {
+    return errorMessage(err, "Sign up failed. Please try again.");
   }
-
-  return errorMessage;
+  try {
+    await generateToken(email, password);
+    return "";
+  } catch (err) {
+    return errorMessage(err, "Your account was created, but logging in failed. Please log in.");
+  }
 }
 
 // New function to restore session on app startup
@@ -92,12 +67,10 @@ export async function restoreSession(): Promise<boolean> {
     const accessToken = tokenResponse.headers.authorization;
     if (accessToken) {
       tokenManager.setToken(accessToken);
-      console.log("SESSION RESTORED FROM REFRESH TOKEN");
       return true;
     }
     return false;
-  } catch (err) {
-    console.log("Failed to restore session:", err);
+  } catch {
     return false;
   }
 }

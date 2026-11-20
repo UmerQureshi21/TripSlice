@@ -1,270 +1,136 @@
-import { useEffect, useState, useRef } from "react";
-import Header from "../components/Header";
 import { NavLink } from "react-router";
+import Header from "../components/Header";
+import Footer from "../components/Footer";
+import Reveal from "../components/Reveal";
+import HowItWorks from "../components/landing/HowItWorks";
+import FeatureScroller from "../components/landing/FeatureScroller";
+import FaqItem from "../components/landing/FaqItem";
+import IdeaRotator from "../components/landing/IdeaRotator";
+import useWindowWidth from "../components/useWindowWidth";
+
+const PURPLE = "#925CFE";
+const SECTION = "w-full py-[120px] md:py-[160px] px-[16px]";
+
+const PROMPTS = [
+  "the Eiffel Tower",
+  "sunset over the water",
+  "dad laughing",
+  "street food",
+  "hot air balloons",
+  "Times Square at night",
+  "waterfalls",
+  "London Bridge",
+];
+
+const FAQS = [
+  {
+    q: "What videos can I upload?",
+    a: "Most phone formats (mp4, mov, webm and more). Each video can be 3 seconds to 2 minutes long, up to 5 at a time and 15 in your library.",
+  },
+  {
+    q: "How long does a montage take?",
+    a: "Usually a minute or two, depending on how many videos you pick (up to 5 per montage). You can watch every step as it happens.",
+  },
+  {
+    q: "What if nothing matches my topic?",
+    a: "You'll get a clear message and nothing is saved, so try describing it differently or picking other videos.",
+  },
+  {
+    q: "What powers TripSlice?",
+    a: "TwelveLabs video AI for understanding your footage, and FFmpeg for cutting and joining the clips.",
+  },
+];
+
+function StartButton() {
+  return (
+    <NavLink
+      to="/account"
+      className="relative inline-flex items-center justify-center overflow-hidden group rounded-[100px] h-[72px] md:h-[84px] px-[48px] md:px-[64px] border border-[#925CFE] bg-black text-[18px] md:text-[20px] transition-transform duration-500 hover:scale-105"
+    >
+      <span className="absolute inset-0 bg-[#925CFE] translate-x-[-101%] group-hover:translate-x-0 transition-transform duration-500" />
+      <span className="relative z-10 text-[#925CFE] group-hover:text-black transition-colors duration-300">
+        Start Creating!
+      </span>
+    </NavLink>
+  );
+}
+
+function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
+  return (
+    <div className="text-center mb-[56px] md:mb-[80px]">
+      <p className="uppercase tracking-[0.25em] text-sm" style={{ color: PURPLE }}>
+        {eyebrow}
+      </p>
+      <h2 className="mt-[12px] text-[36px] md:text-[64px] font-bold text-white leading-tight">{title}</h2>
+    </div>
+  );
+}
 
 export default function HomePage() {
-  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    // MIGHT AFFECT OTHER PAGES' BACKGROUNDS
-    // document.body.style.backgroundColor = "#000000";
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
+  const width = useWindowWidth();
+  const isMobile = width < 640;
 
   return (
-    <div className="bg-black ">
-      <div>
-        <Header height={600} isHome={true} />
-      </div>
+    <div className="bg-black poppins-font text-white">
+      <Header height={760} isHome={true}>
+        <StartButton />
+      </Header>
 
-      <div className="w-full bg-black relative poppins-font">
-        <div className="relative w-full h-[100px] bg-black prompt-section flex flex-col items-center"></div>
+      {/* Tagline and demo */}
+      <section className={SECTION}>
+        <Reveal className="mx-auto max-w-[1200px] flex flex-col lg:flex-row items-center gap-[56px]">
+          <h1 className="lg:w-[40%] font-thin text-[44px] md:text-[64px] lg:text-[72px] leading-tight text-center lg:text-left">
+            From <span className="font-bold" style={{ color: PURPLE }}>cluttered</span> hours of footage to
+            minutes of <span className="font-bold" style={{ color: PURPLE }}>magic</span>
+          </h1>
+          <div className="w-full lg:w-[60%] flex justify-center">
+            <video
+              className={`${isMobile ? "w-[75%]" : "w-full"} border border-white/80 rounded-[20px]`}
+              src={isMobile ? "/trip-slice-video.mov" : "https://tidier.s3.us-east-1.amazonaws.com/trip-slice-desktop.mov"}
+              autoPlay
+              muted
+              playsInline
+              loop
+            />
+          </div>
+        </Reveal>
+      </section>
 
-        {windowWidth >= 768 ? (
-          <>
-            <NavLink
-              to={"/account"}
-              className="
-              absolute w-[30%] left-[35%]
-              lg:top-[-200px] top-[-150px]
-              bg-[#000000] text-white text-[30px]
-              rounded-[100px] h-[100px]
-              overflow-hidden group flex items-center justify-center
-              
-              transition-transform transition-shadow
-              duration-1000 ease-out delay-500
-              
-              hover:scale-110 hover:shadow-2xl
-              scale-100 opacity-100
-              "
-            >
-              <span
-                className="absolute inset-0 bg-[#925CFE] translate-x-[-100%] 
-                   group-hover:translate-x-0 transition-transform duration-500"
-              ></span>
-              <span className="relative text-[20px] z-10 group-hover:text-[#000000] text-[#925CFE] transition-colors duration-300">
-                Start Creating!
-              </span>
-            </NavLink>
-            <Example />
-          </>
-        ) : (
-          <Example />
-        )}
+      {/* How it works */}
+      <section id="how-it-works" className={`${SECTION} scroll-mt-[40px]`}>
+        <Reveal>
+          <SectionHeading eyebrow="How it works" title="Three steps to your montage" />
+        </Reveal>
+        <Reveal>
+          <HowItWorks />
+        </Reveal>
+      </section>
 
-        <div className="py-[100px] bg-black">
-          <Procedure />
+      <FeatureScroller />
+
+      {/* Ideas: one big example at a time */}
+      <section className={SECTION}>
+        <Reveal className="mx-auto max-w-[1100px] flex flex-col items-center gap-[32px]">
+          <h2 className="text-[48px] md:text-[80px] lg:text-[96px] font-bold leading-none text-white">Ideas</h2>
+          <IdeaRotator ideas={PROMPTS} />
+        </Reveal>
+      </section>
+
+      {/* FAQ */}
+      <section className={`${SECTION} pb-[160px] md:pb-[200px]`}>
+        <Reveal>
+          <SectionHeading eyebrow="FAQ" title="Good to know" />
+        </Reveal>
+        <div className="mx-auto max-w-[800px] flex flex-col gap-[16px]">
+          {FAQS.map((faq) => (
+            <Reveal key={faq.q}>
+              <FaqItem question={faq.q} answer={faq.a} />
+            </Reveal>
+          ))}
         </div>
+      </section>
 
-        {windowWidth < 768 ? (
-          <div className="pb-[50px]">
-            <NavLink
-              to={"/account"}
-              className="mt-[80px] mb-[50px] relative left-[10%] w-[80%] bg-[#925CFE] text-white text-[30px] rounded-[100px] h-[100px]
-              overflow-hidden group flex items-center justify-center
-             transition-all duration-1000 ease-out delay-500
-             hover:scale-110 hover:shadow-2xl
-             scale-100 opacity-100 border-[1px] border-black hover:border-[#925CFE]"
-            >
-              <span
-                className="absolute inset-0 bg-[#000000] translate-x-[-100%] 
-                     group-hover:translate-x-0 transition-transform duration-500"
-              ></span>
-              <span className="relative z-10 group-hover:text-[#925CFE] text-[#000000] transition-colors duration-300">
-                Start Creating!
-              </span>
-            </NavLink>
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-function Example() {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.2 }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setWindowWidth(window.innerWidth);
-    };
-
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className="w-full flex flex-col items-center lg:flex-row transition-all duration-1000"
-      style={{
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible ? "translateY(0)" : "translateY(20)",
-      }}
-    >
-      {windowWidth >= 1024 ? <TagLine width={40} /> : <TagLine width={100} />}
-
-      {windowWidth < 640 ? (
-        <div className="sm:w-[50%] bg-black flex justify-center">
-          <video
-            className="lg:w-[50%] lg:mt-[0px] mt-[50px] w-[70%] border-[1px] border-white rounded-[20px]"
-            src="/trip-slice-video.mov"
-            autoPlay
-            muted
-            playsInline
-            loop
-          ></video>
-        </div>
-      ) : (
-        <div className="w-[80%] mt-[50px] lg:mt-[0px] lg:w-[60%] flex items-center justify-center">
-          <video
-            className=" w-full border-[1px] border-white rounded-[20px]"
-            src="https://tidier.s3.us-east-1.amazonaws.com/trip-slice-desktop.mov"
-            autoPlay
-            muted
-            playsInline
-            loop
-          ></video>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Procedure() {
-  const [isVisible, setIsVisible] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.2 }
-    );
-
-    if (ref.current) {
-      observer.observe(ref.current);
-    }
-
-    return () => {
-      if (ref.current) {
-        observer.unobserve(ref.current);
-      }
-    };
-  }, []);
-
-  return (
-    <div
-      ref={ref}
-      className={`h-[600px] w-full mx-auto py-12 px-6 bg-black transition-all duration-1000 ${
-        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-20"
-      }`}
-    >
-      <h2 className="text-3xl md:text-[80px] font-bold text-center mb-12 md:mb-20 text-[#925CFE]">
-        How It Works
-      </h2>
-
-      <div className="flex flex-col sm:flex-row justify-around ">
-        {/* Step 1 */}
-        <div className="flex flex-col  sm:w-[25%] md:gap-12 items-center  h-[200px] sm:h-[300px]  ">
-          <div className="flex-shrink-0 w-16 h-16 md:w-24 md:h-24 rounded-full bg-[#925CFE] flex items-center justify-center text-white font-bold text-2xl md:text-[50px]">
-            1
-          </div>
-          <div className="flex-1">
-            <h3 className="text-xl text-center md:text-3xl font-thin text-white mb-2">
-              Select all the vacation videos you want to search from.
-            </h3>
-          </div>
-        </div>
-
-        {/* Step 2 */}
-        <div className="flex flex-col  sm:w-[25%] md:gap-12 items-center  h-[200px] sm:h-[300px] ">
-          <div className="flex-shrink-0 w-16 h-16 md:w-24 md:h-24 rounded-full bg-[#925CFE] flex items-center justify-center text-white font-bold text-2xl md:text-[50px]">
-            2
-          </div>
-          <div className="flex-1">
-            <h3 className="text-xl text-center md:text-3xl font-thin text-white mb-2">
-              Describe the topic of your montage
-            </h3>
-          </div>
-        </div>
-
-        {/* Step 3 */}
-        <div className="flex flex-col  sm:w-[25%] md:gap-12 items-center  h-[200px] sm:h-[300px] ">
-          <div className="flex-shrink-0 w-16 h-16 md:w-24 md:h-24 rounded-full bg-[#925CFE] flex items-center justify-center text-white font-bold text-2xl md:text-[50px]">
-            3
-          </div>
-          <div className="flex-1">
-            <h3 className="text-xl text-center md:text-3xl font-thin text-white mb-2">
-              Generate your montage by the click of a button!
-            </h3>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface taglineProps {
-  width: number;
-}
-
-function TagLine({ width }: taglineProps) {
-  return (
-    <div
-      className="bg-black font-thin flex justify-center"
-      style={{
-        width: `${width}%`,
-      }}
-    >
-      <h1
-        className="text-white w-[80%]"
-        style={{
-          fontSize: width <= 50 ? "80px" : "50px",
-        }}
-      >
-        From <span className="font-bold text-[#925CFE]">cluttered</span> hours
-        of footage to minutes of{" "}
-        <span className="text-[#925CFE] font-bold">magic</span>
-      </h1>
+      <Footer />
     </div>
   );
 }

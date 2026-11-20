@@ -1,8 +1,8 @@
 package com.umerqureshicodes.tripslice.videos;
 
 import com.umerqureshicodes.tripslice.users.AppUser;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
@@ -17,7 +17,6 @@ public class VideoController {
     }
 
     @GetMapping("/videos")
-    @Cacheable(value = "videos", cacheManager = "cacheManager") // Looks under key named videos
     public List<VideoResponseDTO> getAllVideos(@AuthenticationPrincipal AppUser user) {
         // user is the one from JWT
         String email = user.getUsername();
@@ -34,7 +33,8 @@ public class VideoController {
     }
 
     @DeleteMapping("/videos/{id}")
-    public String deleteVideo(@PathVariable long id, @AuthenticationPrincipal AppUser user) {
-        return videoService.deleteVideo(id, user.getUsername());
+    public ResponseEntity<Void> deleteVideo(@PathVariable long id, @AuthenticationPrincipal AppUser user) {
+        videoService.deleteVideo(id, user.getUsername());
+        return ResponseEntity.noContent().build();
     }
 }

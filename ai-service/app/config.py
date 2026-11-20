@@ -9,6 +9,9 @@ class Settings:
         self.twelvelabs_index_id = os.environ["TWELVELABS_INDEX_ID"]
         self.database_url = os.environ["DATABASE_URL"]
         self.service_key = os.environ["SERVICE_KEY"]
+        # An empty or short key would let anyone who can reach the service call it
+        if len(self.service_key) < 32:
+            raise RuntimeError("SERVICE_KEY must be at least 32 characters")
 
     # Models
     analyze_model = "pegasus1.5"

@@ -4,11 +4,11 @@ import Navbar from "../components/NavBar";
 
 export default function RootLayout() {
   return (
-    <div className="flex flex-col bg-black">
+    <div className="flex flex-col bg-page">
       <Navbar />
       <div className="mt-[75px] relative">
         <Header height={200} isHome={false}/>
-        <div className="relative bg-black w-full h-[40px] prompt-section"></div>
+        <div className="relative bg-page w-full h-[40px] prompt-section"></div>
         <Outlet />
       </div>
     </div>

@@ -2,6 +2,8 @@ package com.umerqureshicodes.tripslice.search;
 
 import com.umerqureshicodes.tripslice.ai.AiClient;
 import com.umerqureshicodes.tripslice.ai.AiSearchHit;
+import com.umerqureshicodes.tripslice.common.ApiException;
+import com.umerqureshicodes.tripslice.limits.UsageService;
 import com.umerqureshicodes.tripslice.montages.Montage;
 import com.umerqureshicodes.tripslice.montages.MontageRepo;
 import com.umerqureshicodes.tripslice.montages.MontageService;
@@ -9,6 +11,7 @@ import com.umerqureshicodes.tripslice.s3.S3Service;
 import com.umerqureshicodes.tripslice.videos.Video;
 import com.umerqureshicodes.tripslice.videos.VideoRepo;
 import com.umerqureshicodes.tripslice.videos.VideoService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -19,6 +22,7 @@ import java.util.Optional;
 public class SearchService {
 
     private static final int MAX_RESULTS = 10;
+    private static final int MAX_QUERY_LENGTH = 200;
 
     private final AiClient aiClient;
     private final VideoRepo videoRepo;
@@ -26,9 +30,12 @@ public class SearchService {
     private final VideoService videoService;
     private final MontageService montageService;
     private final S3Service s3Service;
+    private final UsageService usageService;
 
     public SearchService(AiClient aiClient, VideoRepo videoRepo, MontageRepo montageRepo,
-                         VideoService videoService, MontageService montageService, S3Service s3Service) {
+                         VideoService videoService, MontageService montageService, S3Service s3Service,
+                         UsageService usageService) {
+        this.usageService = usageService;
         this.aiClient = aiClient;
         this.videoRepo = videoRepo;
         this.montageRepo = montageRepo;
@@ -41,6 +48,11 @@ public class SearchService {
         if (query == null || query.isBlank()) {
             return List.of();
         }
+        if (query.length() > MAX_QUERY_LENGTH) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Searches can be at most " + MAX_QUERY_LENGTH + " characters.");
+        }
+        // Every search is a paid TwelveLabs embedding call
+        usageService.consume(userId, UsageService.Kind.SEARCH, 1);
 
         List<SearchResultDTO> results = new ArrayList<>();
         for (AiSearchHit hit : aiClient.search(userId, kind, query.trim(), MAX_RESULTS)) {
@@ -55,7 +67,7 @@ public class SearchService {
                 Optional<Montage> montage = montageRepo.findByIdAndUserUsername(hit.refId(), userEmail);
                 montage.ifPresent(m -> results.add(new SearchResultDTO(
                         "MONTAGE", m.getId(), m.getName(),
-                        s3Service.generatePresignedGetUrl("tidier", montageService.getS3Key(m, userEmail)).toString(),
+                        s3Service.generatePresignedGetUrl(montageService.getS3Key(m, userEmail)).toString(),
                         hit.text(), m.getPrompt(), hit.score())));
             }
         }

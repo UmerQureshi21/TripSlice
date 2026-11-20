@@ -1,12 +1,21 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import Carousel from "./Carousel";
 
 interface props {
   height: number;
   isHome: boolean;
+  // Shown under the tagline on the home page, e.g. the main call to action
+  children?: ReactNode;
 }
 
-export default function Header({ height, isHome }: props) {
+const TAGLINE = (
+  <>
+    Your AI-powered
+    <span className="font-normal ml-[5px] ">Vacation Montage </span>Maker
+  </>
+);
+
+export default function Header({ height, isHome, children }: props) {
   const MEDIUM_WIDTH_SIZE = 768;
   const [windowWidth, setWindowWidth] = useState<number>(window.innerWidth);
 
@@ -79,11 +88,12 @@ export default function Header({ height, isHome }: props) {
             alt=""
           />
         ) : (
-          <img
-            src="/trip-slice-logo-gradient.png"
-            className="absolute z-[50] top-[55px] w-[50%] left-[25%] lg:w-[30%] lg:left-[35%]"
-            alt=""
-          />
+          // Logo, tagline and button stacked in one column, so they never overlap at any width
+          <div className="absolute z-[50] top-[155px] inset-x-0 flex flex-col items-center gap-[28px] px-[16px]">
+            <img src="/trip-slice-logo-gradient.png" className="w-[50%] lg:w-[30%] max-w-[560px]" alt="TripSlice" />
+            <h1 className="font-thin text-white text-[25px] poppins-font text-center">{TAGLINE}</h1>
+            {children}
+          </div>
         )
       ) : (
         <h1
@@ -97,18 +107,19 @@ export default function Header({ height, isHome }: props) {
         </h1>
       )}
 
-      {/* Tag line */}
-      {isHome || windowWidth < MEDIUM_WIDTH_SIZE ? (
-        <h1
-          className="absolute w-[85%] font-thin top-[100px] lg:top-[320px] md:top-[370px] left-[20px] 
-               z-[50] text-white text-[25px] poppins-font md:left-1/2 md:-translate-x-1/2 md:text-center md:w-auto"
-        >
-          Your AI-powered
-          <span className="font-normal ml-[5px] ">Vacation Montage </span>Maker
-        </h1>
+      {/* Tag line (and the home button) on small screens */}
+      {windowWidth < MEDIUM_WIDTH_SIZE ? (
+        <div className="absolute z-[50] top-[100px] left-[20px] w-[85%] flex flex-col items-start gap-[24px]">
+          <h1 className="font-thin text-white text-[25px] poppins-font">{TAGLINE}</h1>
+          {isHome ? children : null}
+        </div>
       ) : null}
 
-      <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-[rgb(5,5,5)] to-transparent"></div>
+      {/* Fades: from black at the top, and on the landing page back to black at the bottom. Light mode has none */}
+      <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-b from-[rgb(5,5,5)] to-transparent light:hidden"></div>
+      {isHome && (
+        <div data-testid="hero-bottom-fade" className="absolute left-0 right-0 bottom-0 h-[55%] bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none"></div>
+      )}
     </div>
   );
 }

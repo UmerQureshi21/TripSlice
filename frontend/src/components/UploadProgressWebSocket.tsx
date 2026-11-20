@@ -62,7 +62,7 @@ function StepIcon({ status }: { status: "pending" | "active" | "completed" }) {
       </div>
     );
   }
-  return <div className="w-6 h-6 rounded-full border-2 border-gray-600" />;
+  return <div className="w-6 h-6 rounded-full border-2 border-line" />;
 }
 
 export default function UploadProgressWebSocket({
@@ -125,16 +125,16 @@ export default function UploadProgressWebSocket({
   const progressPercent = (completedSteps / totalSteps) * 100;
 
   return (
-    <div className="w-full bg-black min-h-[500px] py-12 flex flex-col items-center gap-8">
+    <div className="w-full bg-page min-h-[500px] py-12 flex flex-col items-center gap-8">
       {/* Overall progress bar */}
       <div className="w-[80%] max-w-[600px]">
         <div className="flex justify-between mb-2">
-          <span className="text-sm text-gray-400">Upload Progress</span>
-          <span className="text-sm text-gray-400">
+          <span className="text-sm text-muted">Upload Progress</span>
+          <span className="text-sm text-muted">
             {Math.round(progressPercent)}%
           </span>
         </div>
-        <div className="w-full h-3 bg-gray-800 rounded-full overflow-hidden">
+        <div className="w-full h-3 bg-sunken rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-700 ease-out"
             style={{
@@ -159,10 +159,10 @@ export default function UploadProgressWebSocket({
               className={`border rounded-lg p-4 transition-colors duration-500 ${
                 allDone
                   ? "border-green-500/30 bg-green-500/5"
-                  : "border-gray-700 bg-gray-900/50"
+                  : "border-line bg-sunken"
               }`}
             >
-              <h3 className="text-white text-sm font-medium mb-3 truncate">
+              <h3 className="text-ink text-sm font-medium mb-3 truncate">
                 {name}
               </h3>
               <div className="flex items-center gap-2">
@@ -174,8 +174,8 @@ export default function UploadProgressWebSocket({
                         vp[stage] === "completed"
                           ? "text-green-400"
                           : vp[stage] === "active"
-                          ? "text-white font-medium"
-                          : "text-gray-500"
+                          ? "text-ink font-medium"
+                          : "text-faint"
                       }`}
                     >
                       {STAGE_LABELS[stage]}

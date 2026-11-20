@@ -83,3 +83,8 @@ ai-service/.venv
 ai-service/.env
 ai-service/__pycache__
 ai-service/app/__pycache__
+ai-service/.pytest_cache
+ai-service/.coverage
+ai-service/htmlcov
+ai-service/tests/__pycache__
+/frontend/coverage

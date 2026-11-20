@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -17,6 +19,10 @@ import java.io.IOException;
 //This filer responsible for loggins users in
 //So we have created a filter, added it to filter chain
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    // Same lifetime as tokens issued by /refresh-token
+    private static final long ACCESS_TOKEN_MINUTES = 15;
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
@@ -33,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         // Only handle POST /generate-token
-        if (!request.getServletPath().equals("/generate-token") ||
+        if (!JwtUtil.pathOf(request).equals("/generate-token") ||
                 !"POST".equalsIgnoreCase(request.getMethod())) {
             filterChain.doFilter(request, response);
             return;
@@ -53,12 +59,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // Perform authentication
             Authentication authResult = authenticationManager.authenticate(authenticationToken);
-            System.out.println("Authentication successful: " + authResult.isAuthenticated());
-
 
             if(authResult.isAuthenticated()) {
-            String token = jwtUtil.generateToken(authResult.getName(), 1, JwtUtil.TokenType.ACCESS);
-                System.out.println("Access token generated: " + token);
+            String token = jwtUtil.generateToken(authResult.getName(), ACCESS_TOKEN_MINUTES, JwtUtil.TokenType.ACCESS);
                 response.setHeader("Authorization", "Bearer " + token) ;
 
             String refreshToken = jwtUtil.generateToken(authResult.getName(), 7*24*60, JwtUtil.TokenType.REFRESH);
@@ -73,7 +76,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
         } catch (Exception ex) {
-            System.out.println("Exception in JwtAuthenticationFilter: " + ex.getMessage());
+            // Never log the request body here, it holds the password
+            log.debug("Login failed: {}", ex.getClass().getSimpleName());
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Invalid credentials\"}");

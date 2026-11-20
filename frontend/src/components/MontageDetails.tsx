@@ -1,5 +1,6 @@
 import { useState } from "react";
 import SearchableTag from "./SearchableTag";
+import DeleteControl from "./DeleteControl";
 
 export default function MontageDetails({
   title,
@@ -9,6 +10,7 @@ export default function MontageDetails({
   photos,
   videoSrc,
   searchable,
+  onDelete,
 }: {
   title: string;
   topic: string;
@@ -17,6 +19,7 @@ export default function MontageDetails({
   photos: string[];
   videoSrc: string;
   searchable?: boolean;
+  onDelete?: () => Promise<string | null>;
 }) {
   const [isPhotosExpanded, setIsPhotosExpanded] = useState(false);
   const [isVideoHovering, setIsVideoHovering] = useState(false);
@@ -24,21 +27,21 @@ export default function MontageDetails({
   return (
     <div
       className={`
-      bg-[#222222] rounded-xl shadow-md cursor-pointer
+      bg-raised rounded-xl shadow-md cursor-pointer
       transition-all duration-500 ease-in-out
       hover:shadow-xl border-2
       flex flex-col h-[full]
       ${
         isPhotosExpanded
           ? "border-[#925CFE] shadow-2xl"
-          : "border-[#222222] hover:border-[#925CFE]/50"
+          : "border-raised light:border-line hover:border-[#925CFE]/50"
       }
     `}
     >
-      <div className="p-4 md:p-6 bg-[#222222] flex flex-col  rounded-xl">
+      <div className="p-4 md:p-6 bg-raised flex flex-col  rounded-xl">
         <div className="flex flex-col gap-4 flex-1">
           <div className="">
-            <h3 className="text-xl md:text-2xl font-bold text-[#fff] mb-2">
+            <h3 className="text-xl md:text-2xl font-bold text-ink mb-2">
               {title}
             </h3>
             <p className="text-sm md:text-base text-[#925CFE] mb-4">
@@ -47,7 +50,7 @@ export default function MontageDetails({
             </p>
             {/* Video Section */}
             <div
-              className="w-full h-[180px] sm:h-[400px] bg-[#111] rounded-lg overflow-hidden mb-4"
+              className="w-full h-[180px] sm:h-[400px] bg-sunken rounded-lg overflow-hidden mb-4"
               onMouseEnter={() => setIsVideoHovering(true)}
               onMouseLeave={() => setIsVideoHovering(false)}
             >
@@ -60,7 +63,7 @@ export default function MontageDetails({
                 className="w-full h-48 md:h-[400px] object-cover"
               />
             </div>
-            <div className=" text-white flex flex-col justify-between poppins-font gap-[8px]">
+            <div className=" text-ink flex flex-col justify-between poppins-font gap-[8px]">
               {searchable !== undefined && (
                 <SearchableTag searchable={searchable} />
               )}
@@ -71,6 +74,7 @@ export default function MontageDetails({
                   ? new Date(createdAt).toISOString().split("T")[0]
                   : ""}
               </h1>
+              {onDelete && <DeleteControl label="montage" onDelete={onDelete} />}
             </div>
           </div>
 
@@ -84,7 +88,7 @@ export default function MontageDetails({
               }
             `}
           >
-            <div className="border-t-2 border-[#fff] border-opacity-20 pt-4">
+            <div className="border-t-2 border-ink/20 pt-4">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {photos?.map((photo, idx) => (
                   <video
@@ -103,11 +107,11 @@ export default function MontageDetails({
 
         <button
           onClick={() => setIsPhotosExpanded(!isPhotosExpanded)}
-          className="text-[#fff] hover:text-[#925CFE] font-semibold text-sm md:text-base transition-colors border-t-2 border-[#fff] border-opacity-20 pt-4 mt-4 flex items-center justify-between"
+          className="text-ink hover:text-[#925CFE] font-semibold text-sm md:text-base transition-colors border-t-2 border-ink/20 pt-4 mt-4 flex items-center justify-between"
         >
           <span>Videos that this montage parsed from</span>
           <svg
-            className={`w-5 h-5 text-[#fff] transition-transform duration-500 ${
+            className={`w-5 h-5 text-ink transition-transform duration-500 ${
               isPhotosExpanded ? "rotate-180" : ""
             }`}
             fill="none"

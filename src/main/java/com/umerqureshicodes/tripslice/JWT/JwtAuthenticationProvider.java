@@ -38,7 +38,6 @@ public class JwtAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("Revoked token");
         }
         String username = claims.getSubject();
-        System.out.println("Valid Token :)");
 
         AppUser user = userService.loadUserByUsername(username);
         return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

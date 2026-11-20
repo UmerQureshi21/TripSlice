@@ -39,20 +39,20 @@ export default function PromptSuggestion() {
   };
 
   return (
-    <div className="p-6 bg-gradient-to-br from-[#111] to-[#111] h-full border border-[#925cfe] rounded-lg">
+    <div className="p-6 bg-gradient-to-br from-sunken to-sunken h-full border border-[#925cfe] rounded-lg">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-[#925cfe] text-2xl">✨</span>
-        <h3 className="text-xl  text-white">Need Inspiration?</h3>
+        <h3 className="text-xl  text-ink">Need Inspiration?</h3>
       </div>
 
-      <p className="text-gray-400 text-sm mb-6">
+      <p className="text-muted text-sm mb-6">
         Not sure what to create? Get AI-powered suggestions based on your uplaods, to spark your
         creativity.
       </p>
 
       {currentPrompt && (
-        <div className="bg-[#222] p-4 rounded-lg mb-4 border border-[#925cfe] border-opacity-30">
-          <p className="text-white  mb-3">{currentPrompt}</p>
+        <div className="bg-raised p-4 rounded-lg mb-4 border border-[#925cfe]/30">
+          <p className="text-ink  mb-3">{currentPrompt}</p>
           <button
             onClick={copyPrompt}
             className="text-sm bg-[#925cfe] hover:bg-[#7a4dd1] text-white px-3 py-1 rounded transition"

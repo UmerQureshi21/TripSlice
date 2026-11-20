@@ -12,7 +12,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: DockerFile
+      dockerfile: Dockerfile
     depends_on:
       - ai-service
     environment:

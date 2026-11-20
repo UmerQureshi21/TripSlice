@@ -1,6 +1,9 @@
 package com.umerqureshicodes.tripslice.ai;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
@@ -15,16 +18,33 @@ import java.util.Map;
 @Component
 public class AiClient {
 
+    private static final Logger log = LoggerFactory.getLogger(AiClient.class);
     public static final String KIND_VIDEO = "VIDEO";
     public static final String KIND_MONTAGE = "MONTAGE";
 
     private final RestClient restClient;
 
+    @org.springframework.beans.factory.annotation.Autowired
     public AiClient(@Value("${ai.service.url}") String baseUrl, @Value("${ai.service.key}") String serviceKey) {
-        this.restClient = RestClient.builder()
+        this(RestClient.builder()
+                .requestFactory(timeouts())
                 .baseUrl(baseUrl)
                 .defaultHeader("X-Service-Key", serviceKey)
-                .build();
+                .build());
+    }
+
+    // Without timeouts a stuck AI service would hold a request thread forever.
+    // Analyze calls on a long video can take a while, hence the generous read timeout
+    private static SimpleClientHttpRequestFactory timeouts() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5_000);
+        factory.setReadTimeout(180_000);
+        return factory;
+    }
+
+    // For tests, so calls can be pointed at a mock server
+    AiClient(RestClient restClient) {
+        this.restClient = restClient;
     }
 
     // --- TwelveLabs ---
@@ -44,7 +64,7 @@ public class AiClient {
                     .body(MAP);
             return body == null ? null : (String) body.get("asset_id");
         } catch (Exception e) {
-            System.out.println("AI service call failed (getAssetId): " + e.getMessage());
+            log.warn("AI service call failed (getAssetId): {}", e.getMessage());
             return null;
         }
     }
@@ -54,19 +74,19 @@ public class AiClient {
             restClient.delete().uri("/videos/{videoId}", videoId).retrieve().body(MAP);
             return true;
         } catch (Exception e) {
-            System.out.println("AI service call failed (deleteVideo): " + e.getMessage());
+            log.warn("AI service call failed (deleteVideo): {}", e.getMessage());
             return false;
         }
     }
 
     public String summarize(String assetId) {
-        Map<String, Object> body = post("/videos/" + assetId + "/summary", Map.of());
+        Map<String, Object> body = post("/videos/{assetId}/summary", Map.of(), assetId);
         return body == null ? null : (String) body.get("summary");
     }
 
     /** Raw interval text, e.g. "00:00-00:06, 01:02-01:09". */
     public String findIntervals(String assetId, String topic) {
-        Map<String, Object> body = post("/videos/" + assetId + "/intervals", Map.of("topic", topic));
+        Map<String, Object> body = post("/videos/{assetId}/intervals", Map.of("topic", topic), assetId);
         return body == null ? null : (String) body.get("data");
     }
 
@@ -85,7 +105,7 @@ public class AiClient {
         try {
             restClient.delete().uri("/rag/documents/{kind}/{refId}", kind, refId).retrieve().body(MAP);
         } catch (Exception e) {
-            System.out.println("AI service call failed (deleteDocument): " + e.getMessage());
+            log.warn("AI service call failed (deleteDocument): {}", e.getMessage());
         }
     }
 
@@ -111,11 +131,11 @@ public class AiClient {
     private static final org.springframework.core.ParameterizedTypeReference<Map<String, Object>> MAP =
             new org.springframework.core.ParameterizedTypeReference<>() {};
 
-    private Map<String, Object> post(String path, Map<String, Object> body) {
+    private Map<String, Object> post(String path, Map<String, Object> body, Object... uriVariables) {
         try {
-            return restClient.post().uri(path).body(body).retrieve().body(MAP);
+            return restClient.post().uri(path, uriVariables).body(body).retrieve().body(MAP);
         } catch (Exception e) {
-            System.out.println("AI service call failed (" + path + "): " + e.getMessage());
+            log.warn("AI service call failed (" + path + "): {}", e.getMessage());
             return null;
         }
     }

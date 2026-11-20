@@ -1,5 +1,6 @@
 import React from "react";
 import SearchableTag from "./SearchableTag";
+import DeleteControl from "./DeleteControl";
 
 interface FileDetailsProps {
   name: string;
@@ -7,12 +8,14 @@ interface FileDetailsProps {
   type: string;
   videoSrc: string;
   searchable?: boolean;
+  onDelete?: () => Promise<string | null>;
 }
 
 export default function FileDetails({
   name,
   videoSrc,
   searchable,
+  onDelete,
 }: FileDetailsProps) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
   const [duration, setDuration] = React.useState(0);
@@ -34,7 +37,7 @@ export default function FileDetails({
 
   return (
     <div
-      className="flex flex-col w-full h-[400px] rounded-xl border-2 transition-all  duration-300 overflow-hidden group bg-[#222222] border-[#222222] hover:border-[#925CFE]/50 hover:bg-[#222222]/90"
+      className="flex flex-col w-full h-[400px] rounded-xl border-2 transition-all  duration-300 overflow-hidden group bg-raised border-raised light:border-line hover:border-[#925CFE]/50 hover:bg-raised/90"
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
@@ -53,13 +56,14 @@ export default function FileDetails({
 
       {/* File Info */}
       <div className="p-4 flex flex-col gap-2">
-        <h3 className="font-semibold text-base truncate text-gray-200 group-hover:text-white transition-colors">
+        <h3 className="font-semibold text-base truncate text-ink-soft group-hover:text-ink transition-colors">
           {name}
         </h3>
-        <div className="flex items-center justify-between gap-2 text-xs text-gray-400">
+        <div className="flex items-center justify-between gap-2 text-xs text-muted">
           <span>{formatTime(duration)}</span>
           {searchable !== undefined && <SearchableTag searchable={searchable} />}
         </div>
+        {onDelete && <DeleteControl label="video" onDelete={onDelete} />}
       </div>
     </div>
   );

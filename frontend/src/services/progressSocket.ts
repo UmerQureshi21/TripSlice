@@ -19,7 +19,10 @@ export function createProgressClient(
   const client = new StompJs.Client({
     brokerURL,
     reconnectDelay: 2000,
-    debug: (str) => console.log(str),
+    // Frames include the access token, so they are only printed in local dev
+    debug: (str) => {
+      if (import.meta.env.DEV) console.log(str);
+    },
     beforeConnect: async () => {
       // Any authenticated request renews the access token first if it has expired
       try {

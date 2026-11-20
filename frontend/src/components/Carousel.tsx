@@ -20,7 +20,7 @@ export default function Carousel({
   const requestRef = useRef<number>(0);
   const lastTime = useRef<number>(0);
   const speed = flowSpeed;
-  let images2: string[] = images; // images2 is the array that gets updated when you press left or right
+  const images2: string[] = images; // images2 is the array that gets updated when you press left or right
 
   useEffect(() => {
     const step = (time: number) => {
@@ -30,14 +30,14 @@ export default function Carousel({
 
       const moveBy = (speed * delta) / 1000;
 
-      for (let slide of slideRefs.current) {
+      for (const slide of slideRefs.current) {
         const currentLeft = parseFloat(slide.style.left || "0");
         const newLeft = currentLeft - moveBy;
         slide.style.left = `${newLeft}px`;
       }
 
       // Recycle any slide that has exited left edge
-      for (let slide of slideRefs.current) {
+      for (const slide of slideRefs.current) {
         const left = parseFloat(slide.style.left || "0");
         const width = slide.offsetWidth;
 

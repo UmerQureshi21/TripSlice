@@ -1,7 +1,6 @@
 package com.umerqureshicodes.tripslice.montages;
 
 import com.umerqureshicodes.tripslice.users.AppUser;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -23,18 +22,13 @@ public class MontageController {
         return montageService.createMontage(montageRequestDTO, appUser.getUsername());
     }
 
-    @ExceptionHandler(MontageCreationException.class)
-    public ResponseEntity<Map<String, String>> handleMontageCreationException(MontageCreationException e) {
-        return ResponseEntity.unprocessableEntity().body(Map.of("error", e.getMessage()));
-    }
-
     @DeleteMapping("/montages/{id}")
-    public String deleteMontage(@PathVariable Long id, @AuthenticationPrincipal AppUser appUser) {
-        return montageService.deleteMontage(id, appUser.getUsername());
+    public ResponseEntity<Void> deleteMontage(@PathVariable Long id, @AuthenticationPrincipal AppUser appUser) {
+        montageService.deleteMontage(id, appUser.getUsername());
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/montages")
-    @Cacheable(value = "montages", cacheManager = "cacheManager") // Looks under key named montages
     public List<MontageResponseDTO> getUrl(@AuthenticationPrincipal AppUser user){
         return montageService.getMontages(user.getUsername());
     }

@@ -1,4 +1,5 @@
 export type VideoRequestDTO = {
+  id?: number; // database id, for deleting
   name: string;
   videoId: string;
   previewUrl: string;
@@ -12,6 +13,7 @@ export type MontageRequestDTO = {
 };
 
 export type MontageResponseDTO = {
+  id?: number; // database id, for deleting
   name: string;
   preSignedUrl: string;
   prompt: string;
@@ -35,6 +37,7 @@ export type UserRequestDTO = {
   displayedName: string;
   password: string;
   username: string;
+  turnstileToken?: string; // Cloudflare Turnstile, sign up only
 };
 
 export type UserResponseDTO = {

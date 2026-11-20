@@ -1,25 +1,34 @@
 package com.umerqureshicodes.tripslice.users;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.umerqureshicodes.tripslice.common.ApiException;
+import com.umerqureshicodes.tripslice.security.TurnstileService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final TurnstileService turnstileService;
+    private final String clientIpHeader;
 
-
-    @PostMapping("/register")
-    public UserResponseDTO register(@RequestBody UserRequestDTO userRequestDTO) {
-        return userService.createUser(userRequestDTO);
+    public UserController(UserService userService, TurnstileService turnstileService,
+                          @Value("${ratelimit.client-ip-header:}") String clientIpHeader) {
+        this.userService = userService;
+        this.turnstileService = turnstileService;
+        this.clientIpHeader = clientIpHeader == null ? "" : clientIpHeader.trim();
     }
 
-    @PostMapping("/login")
-    public UserResponseDTO login(@RequestBody UserRequestDTO dto) {
-        return userService.login(dto) ;
+    @PostMapping("/register")
+    public UserResponseDTO register(@Valid @RequestBody UserRequestDTO userRequestDTO, HttpServletRequest request) {
+        if (!turnstileService.verify(userRequestDTO.turnstileToken(), clientIp(request))) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Please complete the verification check and try again.");
+        }
+        return userService.createUser(userRequestDTO);
     }
 
     @GetMapping("/user")
@@ -27,9 +36,10 @@ public class UserController {
         return userService.getUser(appUser.getUsername());
     }
 
-    @GetMapping("/test")
-    public String test(@RequestBody String random) {
-        return random;
+    private String clientIp(HttpServletRequest request) {
+        if (!clientIpHeader.isEmpty() && request.getHeader(clientIpHeader) != null) {
+            return request.getHeader(clientIpHeader).split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
-
 }

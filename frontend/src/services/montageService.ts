@@ -1,13 +1,15 @@
 import axiosInstance from "./refreshTokenAxios";
+import { errorMessage } from "./errors";
 import type {
   MontageRequestDTO,
   MontageResponseDTO,
   VideoRequestDTO,
 } from "../Types";
 
-const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+// Shorter than the 10 minute life of the S3 links inside, so cached previews never expire
+const CACHE_DURATION = 4 * 60 * 1000;
 
-let cachedVideos: MontageResponseDTO[] | null = null;
+let cachedMontages: MontageResponseDTO[] | null = null;
 let cacheTime: number = 0;
 
 export async function createMontage(
@@ -16,14 +18,14 @@ export async function createMontage(
   title: string,
   sentence: string
 ): Promise<MontageResponseDTO> {
-  let videosInMontage: VideoRequestDTO[] = [];
+  const videosInMontage: VideoRequestDTO[] = [];
   for (let i = 0; i < clicks.length; i++) {
     if (clicks[i]) {
       videosInMontage.push(files[i]);
     }
   }
 
-  let request: MontageRequestDTO = {
+  const request: MontageRequestDTO = {
     name: title,
     videoRequestDTOs: videosInMontage,
     prompt: sentence,
@@ -31,39 +33,33 @@ export async function createMontage(
 
   const res = await axiosInstance.post(`/montages`, request);
   clearMontageCache();
-  let data: MontageResponseDTO = res.data;
+  const data: MontageResponseDTO = res.data;
   return data;
 }
 
 export async function getAllMontages(): Promise<MontageResponseDTO[]> {
+  const now = Date.now();
+  if (cachedMontages && now - cacheTime < CACHE_DURATION) {
+    return cachedMontages;
+  }
+  const res = await axiosInstance.get(`/montages`);
+  cachedMontages = res.data;
+  cacheTime = now;
+  return res.data;
+}
+
+// Returns null on success, otherwise the message to show the user
+export async function deleteMontage(id: number): Promise<string | null> {
   try {
-    const now = Date.now();
-
-    // Check if cache exists and is still valid
-    if (cachedVideos && now - cacheTime < CACHE_DURATION) {
-      console.log("Using cached videos");
-      return cachedVideos;
-    }
-
-    // Fetch new data
-    console.log("Fetching fresh videos from API");
-
-    const res = await axiosInstance.get(`/montages`);
-
-    const fileDetails = res.data;
-
-    // Store in cache
-    cachedVideos = fileDetails;
-    cacheTime = now;
-
-    return fileDetails;
+    await axiosInstance.delete(`/montages/${id}`);
+    clearMontageCache();
+    return null;
   } catch (err) {
-    console.error("Failed to fetch videos:", err);
-    throw err;
+    return errorMessage(err, "The montage couldn't be deleted. Please try again.");
   }
 }
 
 export function clearMontageCache(): void {
-  cachedVideos = null;
+  cachedMontages = null;
   cacheTime = 0;
 }

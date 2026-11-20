@@ -4,6 +4,8 @@ import type { UserResponseDTO, MontageResponseDTO } from "../Types";
 import DashboardStats from "./DashboardStats";
 import PromptSuggestion from "./PromptSuggestions";
 import MontageDetails from "./MontageDetails";
+import ErrorBanner from "./ErrorBanner";
+import { errorMessage } from "../services/errors";
 
 export default function DashboardHero() {
   const [displayedName, setDisplayedName] = useState<string>("");
@@ -11,34 +13,27 @@ export default function DashboardHero() {
     useState<MontageResponseDTO | null>(null);
   const [mostVideosMontage, setMostVideosMontage] =
     useState<MontageResponseDTO | null>(null);
+  const [highlightsError, setHighlightsError] = useState<string | null>(null);
 
   async function getUser() {
-    const res = await axiosInstance.get(`/user`);
-    const userData: UserResponseDTO = res.data;
-    setDisplayedName(userData.displayedName);
+    try {
+      const res = await axiosInstance.get(`/user`);
+      const userData: UserResponseDTO = res.data;
+      setDisplayedName(userData.displayedName);
+    } catch {
+      setDisplayedName("there"); // "Hi, there" rather than "Hi, " with nothing after it
+    }
   }
 
   async function getMontages() {
     try {
-      //const now = Date.now();
-
-      // if (cachedMontages && now - cacheTime < CACHE_DURATION) {
-      //   console.log("Using cached montage highlights");
-      //   setMostRecentMontage(cachedMontages[0]);
-      //   setMostVideosMontage(cachedMontages[1]);
-      // }
-
-      //console.log("Fetching fresh montage highlights from API");
-
+      setHighlightsError(null);
       const longest = await axiosInstance.get("/montages/longest");
-      setMostRecentMontage(longest.data);
+      setMostRecentMontage(longest.data || null);
       const mostVids = await axiosInstance.get("montages/most-vids");
-      setMostVideosMontage(mostVids.data);
-
-      // cachedMontages = [longest.data, mostVids.data];
-      // cacheTime = now;
+      setMostVideosMontage(mostVids.data || null);
     } catch (err) {
-      console.error("Failed to fetch montages:", err);
+      setHighlightsError(errorMessage(err, "Your montage highlights couldn't be loaded."));
     }
   }
 
@@ -48,7 +43,7 @@ export default function DashboardHero() {
   }, []);
 
   return (
-    <div className="w-full  poppins-font text-white bg-black flex flex-col items-center gap-8 p-8">
+    <div className="w-full  poppins-font text-ink bg-page flex flex-col items-center gap-8 p-8">
       {/* Hero Section */}
       <div className=" w-[95%]">
         <h1 className="text-[40px] text-center sm:text-left sm:text-[80px] font-bold">
@@ -58,7 +53,7 @@ export default function DashboardHero() {
       </div>
 
       {/* Main Content */}
-      <div className="w-[95%]  flex flex-col sm:flex-row gap-8 bg-[#222222] p-[15px] rounded-[15px]">
+      <div className="w-[95%]  flex flex-col sm:flex-row gap-8 bg-raised p-[15px] rounded-[15px]">
         {/* Left Side */}
         <div className="w-full sm:w-[50%]  flex flex-col ">
           <DashboardStats />
@@ -71,6 +66,7 @@ export default function DashboardHero() {
       <h1 className="text-[30px] text-center sm:text-left w-[95%] sm:text-[70px] poppins-font font-bold">
         Montages that stand out:
       </h1>
+      {highlightsError && <ErrorBanner message={highlightsError} onRetry={getMontages} />}
       <div className="flex flex-col sm:flex-row w-full justify-around">
         {/* Most Recent Montage */}
         {mostRecentMontage && (

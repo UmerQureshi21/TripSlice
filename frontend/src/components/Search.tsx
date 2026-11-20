@@ -2,6 +2,7 @@ import { useState } from "react";
 import FileDetails from "./VideoDetails";
 import type { SearchResultDTO } from "../Types";
 import { search, type SearchType } from "../services/searchService";
+import { errorMessage as messageFor } from "../services/errors";
 
 export default function Search() {
   const [query, setQuery] = useState<string>("");
@@ -20,8 +21,7 @@ export default function Search() {
       setResults(found);
       setSearchedFor(query.trim());
     } catch (err) {
-      console.error("Search failed:", err);
-      setErrorMessage("Search failed. Please try again.");
+      setErrorMessage(messageFor(err, "Search failed. Please try again."));
       setResults(null);
     } finally {
       setLoading(false);
@@ -37,12 +37,12 @@ export default function Search() {
   }
 
   return (
-    <div className="w-full bg-black flex flex-col items-center gap-[30px] pb-[100px]">
-      <div className="w-[90%] md:w-[65%] bg-[rgb(20,20,20)] rounded-[20px] p-[25px] md:p-[40px] flex flex-col gap-[20px]">
-        <h1 className="poppins-font text-white text-[26px] md:text-[35px]">
+    <div className="w-full bg-page flex flex-col items-center gap-[30px] pb-[100px]">
+      <div className="w-[90%] md:w-[65%] bg-surface rounded-[20px] p-[25px] md:p-[40px] flex flex-col gap-[20px]">
+        <h1 className="poppins-font text-ink text-[26px] md:text-[35px]">
           Search by <span className="text-[#925cfe]">description</span>
         </h1>
-        <p className="poppins-font text-gray-400 text-sm">
+        <p className="poppins-font text-muted text-sm">
           Describe what you remember seeing, like "warm beach" or "scenic
           sunset", and we'll find the closest matches.
         </p>
@@ -57,10 +57,11 @@ export default function Search() {
           <input
             type="text"
             value={query}
+            maxLength={200}
             autoFocus
             placeholder="warm beach at sunset"
             onChange={(e) => setQuery(e.target.value)}
-            className="flex-1 outline-none border-b-[1px] border-b-[#925cfe] pb-[8px] bg-transparent text-white poppins-font"
+            className="flex-1 outline-none border-b-[1px] border-b-[#925cfe] pb-[8px] bg-transparent text-ink poppins-font"
             style={{ caretColor: "#925cfe" }}
           />
           <button
@@ -68,7 +69,7 @@ export default function Search() {
             disabled={query.trim() === "" || loading}
             className={`px-[30px] py-[12px] rounded-[20px] poppins-font text-white text-[18px] transition duration-150 ease ${
               query.trim() === "" || loading
-                ? "bg-[#222222] hover:cursor-not-allowed"
+                ? "bg-raised light:bg-sunken light:text-faint hover:cursor-not-allowed"
                 : "bg-[#925CFE] hover:cursor-pointer hover:shadow-[0_0_10px_white]"
             }`}
           >
@@ -85,7 +86,7 @@ export default function Search() {
               className={`px-[20px] py-[8px] rounded-[20px] poppins-font text-sm capitalize transition duration-150 hover:cursor-pointer ${
                 type === option
                   ? "bg-[#925CFE] text-white"
-                  : "bg-[#222222] text-gray-400 hover:text-white"
+                  : "bg-raised text-muted hover:text-ink"
               }`}
             >
               {option}
@@ -101,7 +102,7 @@ export default function Search() {
       )}
 
       {results !== null && results.length === 0 && !loading && (
-        <div className="text-white poppins-font text-center text-[22px] md:text-[28px] w-[80%] md:w-[50%] mt-[40px]">
+        <div className="text-ink poppins-font text-center text-[22px] md:text-[28px] w-[80%] md:w-[50%] mt-[40px]">
           No {type} matched{" "}
           <span className="text-[#925cfe]">"{searchedFor}"</span>. Try
           describing the scene differently.
@@ -109,7 +110,7 @@ export default function Search() {
       )}
 
       {results !== null && results.length > 0 && (
-        <div className="bg-[rgb(20,20,20)] w-[95%] rounded-[10px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
+        <div className="bg-surface w-[95%] rounded-[10px] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
           {results.map((result) => (
             <div key={`${result.kind}-${result.id}`} className="flex flex-col gap-[8px]">
               <FileDetails
@@ -123,7 +124,7 @@ export default function Search() {
                   {Math.round(result.score * 100)}% match
                   {result.prompt ? ` · "${result.prompt}"` : ""}
                 </span>
-                <p className="poppins-font text-gray-400 text-xs line-clamp-3">
+                <p className="poppins-font text-muted text-xs line-clamp-3">
                   {result.summary}
                 </p>
               </div>

@@ -24,7 +24,7 @@ public class JwtRefreshFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response , FilterChain filterChain) throws ServletException, IOException {
 
-        if(!request.getServletPath().equals("/refresh-token")) {
+        if(!JwtUtil.pathOf(request).equals("/refresh-token")) {
             filterChain.doFilter(request,response);
             return;
         }

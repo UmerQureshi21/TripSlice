@@ -21,6 +21,7 @@ import { restoreSession } from "./services/userService";
 import { tokenManager } from "./services/tokenManager";
 import { clearVideoCache } from "./services/videoService";
 import { clearMontageCache } from "./services/montageService";
+import { ThemeSync } from "./components/Theme";
 
 // Wrapper component that uses useLocation
 function AppContent() {
@@ -42,6 +43,8 @@ function AppContent() {
   };
 
   return (
+    <>
+    <ThemeSync />
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/account" element={<LogInPage />} />
@@ -58,6 +61,7 @@ function AppContent() {
 
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
+    </>
   );
 }
 
@@ -75,7 +79,7 @@ export default function App() {
 
   if (!isInitialized) {
     return (
-      <div className="poppins-font text-white w-full min-h-screen bg-black font-bold">
+      <div className="poppins-font text-ink w-full min-h-screen bg-page font-bold">
         Loading...
       </div>
     );

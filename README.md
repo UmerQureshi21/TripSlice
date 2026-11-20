@@ -76,3 +76,42 @@ mvn spring-boot:run
 
 
 
+
+---
+
+## 🧪 Tests
+
+Both test suites run fully offline. S3 and TwelveLabs are mocked, so tests never spend credits or touch AWS. The backend uses a throwaway embedded Postgres, never your dev database.
+
+```bash
+# Backend (needs ffmpeg on PATH). Fails the build under 90% line coverage
+mvn verify            # report: target/site/jacoco/index.html
+
+# AI service. Fails under 90% coverage
+cd ai-service && pip install -r requirements-dev.txt && pytest
+
+# Frontend (Vitest + Testing Library). Fails under 90% line coverage
+cd frontend && npm run coverage
+```
+
+## 🚂 Deploying on Railway
+
+Create three services from this repo: Postgres, **backend** (root directory `/`), and **ai-service** (root directory `/ai-service`). Each one picks up its own `railway.toml`. Only the backend gets a public domain.
+
+| Service | Variable | Value |
+|---|---|---|
+| backend | `SPRING_DATASOURCE_URL` | `jdbc:postgresql://${{Postgres.PGHOST}}:${{Postgres.PGPORT}}/${{Postgres.PGDATABASE}}` |
+| backend | `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` | `${{Postgres.PGUSER}}` / `${{Postgres.PGPASSWORD}}` |
+| backend | `JWT_SECRET` | `openssl rand -base64 48` |
+| backend | `AI_SERVICE_KEY` | same as the ai-service `SERVICE_KEY` (32+ chars) |
+| backend | `AI_SERVICE_URL` | `http://${{ai-service.RAILWAY_PRIVATE_DOMAIN}}:8000` |
+| backend | `FRONTEND_HOST` | your exact Vercel origin, e.g. `https://tripslice.vercel.app` |
+| backend | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_REGION` / `AWS_S3_BUCKET` | least-privilege IAM user for the bucket |
+| backend | `CLIENT_IP_HEADER` | `X-Real-IP` |
+| backend | `TURNSTILE_SECRET` | optional, enables the sign-up bot check |
+| backend | `JPA_DDL_AUTO` | `validate` once the schema has been migrated |
+| ai-service | `TWELVELABS_API_KEY`, `TWELVELABS_INDEX_ID`, `SERVICE_KEY` | |
+| ai-service | `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
+| frontend (Vercel) | `VITE_BACKEND_URL`, `VITE_TURNSTILE_SITE_KEY` | |
+
+Per-user daily caps on paid AI calls can be tuned with `LIMIT_DAILY_ANALYZE_CALLS`, `LIMIT_DAILY_SEARCHES` and `LIMIT_DAILY_MONTAGES`.

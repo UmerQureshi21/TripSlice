@@ -1,6 +1,7 @@
 package com.umerqureshicodes.tripslice.users;
 
 import com.umerqureshicodes.tripslice.JWT.*;
+import com.umerqureshicodes.tripslice.security.RateLimitFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.config.Customizer;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -34,6 +34,9 @@ public class UserConfig {
     @Value("${frontend.host}")
     private String frontendUrl;
 
+    @Value("${ratelimit.client-ip-header:}")
+    private String clientIpHeader;
+
     public UserConfig(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
     }
@@ -41,10 +44,11 @@ public class UserConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Collections.singletonList(frontendUrl)); // http://localhost:5174
+        config.setAllowedOrigins(Collections.singletonList(frontendUrl));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Collections.singletonList("*"));
-        config.setExposedHeaders(Arrays.asList("Authorization")); // Pretty sure this would allow token to be stored in response to client
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        // Lets the frontend read the access token from the login and refresh responses
+        config.setExposedHeaders(Arrays.asList("Authorization"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -100,7 +104,7 @@ public class UserConfig {
                 .csrf(csrf -> csrf.disable())
                 .authenticationProvider(daoAuthenticationProvider)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/gs-guide-websocket/**", "/register","/login", "/generate-token", "/refresh-token", "/refresh-token/logout").permitAll()
+                        .requestMatchers("/gs-guide-websocket/**", "/register", "/generate-token", "/refresh-token", "/refresh-token/logout", "/actuator/health").permitAll()
                         .anyRequest().authenticated()
                 )
                 // Revokes the refresh token and clears its cookie. The URL is under the cookie's path so the browser sends it
@@ -110,9 +114,13 @@ public class UserConfig {
                         .logoutSuccessHandler((request, response, authentication) ->
                                 response.setStatus(HttpServletResponse.SC_OK))
                 )
+                // Order: per-IP limits -> login -> token validation -> per-user limits -> refresh.
+                // Each position is relative to a filter added earlier, so the calls must stay in this order
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class) // generate token filter
                 .addFilterAfter(jwtValidationFilter, JwtAuthenticationFilter.class) // validate token filter
-                .addFilterAfter(jwtRefreshFilter, JwtValidationFilter.class) ; // refresh token filter
+                .addFilterAfter(new RateLimitFilter(clientIpHeader, true), JwtValidationFilter.class) // per-user limits
+                .addFilterAfter(jwtRefreshFilter, RateLimitFilter.class) // refresh token filter
+                .addFilterBefore(new RateLimitFilter(clientIpHeader, false), JwtAuthenticationFilter.class); // per-IP limits
 
         return http.build();
     }

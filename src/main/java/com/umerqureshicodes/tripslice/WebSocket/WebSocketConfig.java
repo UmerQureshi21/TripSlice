@@ -1,5 +1,6 @@
 package com.umerqureshicodes.tripslice.WebSocket;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
@@ -13,20 +14,19 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     private final AuthenticationManager authenticationManager;
+    private final String frontendHost;
 
-    public WebSocketConfig(AuthenticationManager authenticationManager) {
+    public WebSocketConfig(AuthenticationManager authenticationManager, @Value("${frontend.host}") String frontendHost) {
         this.authenticationManager = authenticationManager;
+        this.frontendHost = frontendHost;
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic", "/queue");
+        // Only per-user queues are used, there is no broadcast topic
+        config.enableSimpleBroker("/queue");
         // Clients subscribe to /user/queue/... to only get messages sent to them with convertAndSendToUser
         config.setUserDestinationPrefix("/user");
-        // carries greeting message back to client on destinations prefixed with /topic
-        config.setApplicationDestinationPrefixes("/app");
-        // designates the app prefix for messages bound for methods annotated with @MessageMapping
-        // e.g /app/hello will be the endpoint handled by the MessageController.greeting() method
     }
 
     @Override
@@ -37,7 +37,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/gs-guide-websocket")
-                .setAllowedOriginPatterns("*"); // allow CORS if needed
+                .setAllowedOrigins(frontendHost);
     }
 
 }

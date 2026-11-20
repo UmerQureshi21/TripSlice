@@ -6,7 +6,7 @@ Kind = Literal["VIDEO", "MONTAGE"]
 
 
 class IndexVideoRequest(BaseModel):
-    video_url: str  # presigned S3 url, TwelveLabs downloads it from there
+    video_url: str = Field(max_length=4096)  # presigned S3 url, TwelveLabs downloads it from there
 
 
 class IndexVideoResponse(BaseModel):
@@ -22,7 +22,7 @@ class SummaryResponse(BaseModel):
 
 
 class IntervalsRequest(BaseModel):
-    topic: str  # what the user typed, e.g. "eiffel tower"
+    topic: str = Field(min_length=1, max_length=100)  # what the user typed, e.g. "eiffel tower"
 
 
 class IntervalsResponse(BaseModel):
@@ -33,7 +33,7 @@ class DocumentRequest(BaseModel):
     owner_id: int
     kind: Kind
     ref_id: int
-    text: str
+    text: str = Field(max_length=20000)
 
 
 class DocumentResponse(BaseModel):
@@ -45,13 +45,13 @@ class DocumentResponse(BaseModel):
 class SearchRequest(BaseModel):
     owner_id: int
     kind: Kind
-    query: str
+    query: str = Field(max_length=200)
     limit: int = Field(default=10, ge=1, le=50)
 
 
 class Hit(BaseModel):
     ref_id: int
-    text: str
+    text: str = Field(max_length=20000)
     score: float
 
 

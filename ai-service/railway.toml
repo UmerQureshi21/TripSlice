@@ -1,0 +1,11 @@
+# AI service (FastAPI). Railway service settings: root directory = /ai-service
+# Do NOT generate a public domain for this service, the backend reaches it over the private network
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+healthcheckPath = "/health"
+healthcheckTimeout = 60
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 5

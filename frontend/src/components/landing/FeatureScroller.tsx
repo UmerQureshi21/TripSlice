@@ -44,20 +44,29 @@ export default function FeatureScroller() {
 
   if (!pinned) {
     return (
-      <section className="w-full py-[120px] px-[16px]">
-        <div className="mx-auto max-w-[560px] flex flex-col gap-[64px]">
-          <div className="text-center">{EYEBROW}</div>
-          {FEATURES.map((feature) => (
-            <div key={feature.title} className="flex flex-col gap-[24px]">
-              <div className={`${CARD} h-[260px] grid place-items-center`} style={{ background: feature.background }}>
-                <div className={ICON}>{feature.art}</div>
-              </div>
-              <div>
-                <h3 className="text-[32px] font-bold leading-tight text-white">{feature.title}</h3>
-                <p className="mt-[12px] text-[17px] text-gray-400 leading-relaxed">{feature.body}</p>
-              </div>
-            </div>
-          ))}
+      // Small screens: a compact list (icon tile beside the text) instead of big cards
+      <section className="w-full py-[96px] px-[20px]">
+        <div className="mx-auto max-w-[560px]">
+          {EYEBROW}
+          <h2 className="mt-[12px] text-[34px] sm:text-[40px] font-bold leading-[1.1] text-white">
+            Relive the trip, skip the scrubbing
+          </h2>
+          <ul className="mt-[40px] divide-y divide-white/10 border-y border-white/10">
+            {FEATURES.map((feature) => (
+              <li key={feature.title} className="flex gap-[18px] py-[26px]">
+                <div
+                  className="shrink-0 grid place-items-center w-[52px] h-[52px] rounded-[16px] text-white shadow-[0_10px_30px_-12px_rgba(146,92,254,0.8)]"
+                  style={{ background: feature.background }}
+                >
+                  <div className="w-[26px] h-[26px]">{feature.art}</div>
+                </div>
+                <div className="min-w-0">
+                  <h3 className="text-[19px] font-semibold leading-snug text-white">{feature.title}</h3>
+                  <p className="mt-[6px] text-[15px] text-gray-400 leading-relaxed">{feature.body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
     );

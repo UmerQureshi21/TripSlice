@@ -3,12 +3,12 @@ package com.umerqureshicodes.tripslice.s3;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-
-import java.net.URI;
 
 @Configuration
 public class S3Config {
@@ -16,10 +16,22 @@ public class S3Config {
     @Value("${aws.region}")
     private String awsRegion;
 
+    // Locally: the name of an ~/.aws profile holding the app's restricted key (tripslice-backend).
+    // Empty in production, where AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY are set instead.
+    @Value("${aws.profile:}")
+    private String awsProfile;
+
+    AwsCredentialsProvider credentials() {
+        return awsProfile == null || awsProfile.isBlank()
+                ? DefaultCredentialsProvider.builder().build()
+                : ProfileCredentialsProvider.create(awsProfile);
+    }
+
     @Bean
-    public S3Client s3Client() { // Later need to add a second implementation for testing, wont actually connect
+    public S3Client s3Client() {
         return S3Client.builder()
                 .region(Region.of(awsRegion))
+                .credentialsProvider(credentials())
                 .build();
     }
 
@@ -27,7 +39,7 @@ public class S3Config {
     public S3Presigner s3Presigner() {
         return S3Presigner.builder()
                 .region(Region.of(awsRegion))
+                .credentialsProvider(credentials())
                 .build();
     }
-
 }

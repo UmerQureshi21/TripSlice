@@ -1,0 +1,13 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowBudgetsToPublish",
+      "Effect": "Allow",
+      "Principal": { "Service": "budgets.amazonaws.com" },
+      "Action": "SNS:Publish",
+      "Resource": "arn:aws:sns:us-east-1:660888594404:tripslice-billing-alerts",
+      "Condition": { "StringEquals": { "aws:SourceAccount": "660888594404" } }
+    }
+  ]
+}

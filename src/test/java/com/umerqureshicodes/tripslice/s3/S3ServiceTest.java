@@ -63,6 +63,16 @@ class S3ServiceTest {
     }
 
     @Test
+    void configUsesANamedProfileOnlyWhenOneIsSet() {
+        S3Config config = new S3Config();
+        assertThat(config.credentials()).isInstanceOf(software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider.class);
+        ReflectionTestUtils.setField(config, "awsProfile", " ");
+        assertThat(config.credentials()).isInstanceOf(software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider.class);
+        ReflectionTestUtils.setField(config, "awsProfile", "tripslice-backend");
+        assertThat(config.credentials()).isInstanceOf(software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider.class);
+    }
+
+    @Test
     void configBuildsClientsForTheRegion() {
         S3Config config = new S3Config();
         ReflectionTestUtils.setField(config, "awsRegion", "us-east-1");

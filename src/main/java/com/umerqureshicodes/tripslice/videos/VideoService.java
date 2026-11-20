@@ -74,6 +74,7 @@ public class VideoService {
         List<File> tempFiles = new ArrayList<>();
         try {
             Map<String, File> videos = new LinkedHashMap<>();
+            Map<String, Long> durations = new HashMap<>();
             long totalVideosLength = 0;
 
             for (MultipartFile file : files) {
@@ -103,7 +104,9 @@ public class VideoService {
                     }
                 }
                 videos.put(name, mp4);
-                totalVideosLength += Math.round(probe.durationSeconds() * 1000.0);
+                long millis = Math.round(probe.durationSeconds() * 1000.0);
+                durations.put(name, millis);
+                totalVideosLength += millis;
             }
 
             if (limitService.exceededLimit(totalVideosLength)) {
@@ -119,6 +122,8 @@ public class VideoService {
                 notify(userEmail, entry.getKey(), "uploading");
                 Video savedVideo = uploadAndIndex(entry.getValue(), entry.getKey(), userEmail);
                 if (savedVideo == null) {
+                    // Nothing was indexed, so its minutes go back to the allowance
+                    limitService.release(durations.get(entry.getKey()));
                     log.warn("Could not save an uploaded video");
                     continue;
                 }

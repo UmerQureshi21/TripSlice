@@ -86,7 +86,8 @@ export default function HomePage() {
           <div className="w-full lg:w-[60%] flex justify-center">
             <video
               className={`${isMobile ? "w-[75%]" : "w-full"} border border-white/80 rounded-[20px]`}
-              src={isMobile ? "/trip-slice-video.mov" : "https://tidier.s3.us-east-1.amazonaws.com/trip-slice-desktop.mov"}
+              // Served with the frontend, not from S3, so the bucket stays private
+              src={isMobile ? "/trip-slice-mobile.mp4" : "/trip-slice-desktop.mp4"}
               autoPlay
               muted
               playsInline

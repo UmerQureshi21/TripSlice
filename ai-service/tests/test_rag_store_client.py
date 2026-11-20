@@ -57,6 +57,17 @@ def test_index_document_keeps_old_data_when_embedding_fails(monkeypatch):
     assert rag.index_document(1, "VIDEO", 7, "  ") == (0, 0)
 
 
+def test_search_drops_results_far_behind_the_best(monkeypatch):
+    # The real case: a food query matched the food clip at 0.77 and bridge clips at 0.43 and 0.34
+    monkeypatch.setattr(twelvelabs_client, "embed_text", lambda text: [1.0, 0.0])
+    def vec(score):
+        return [score, (1 - score**2) ** 0.5]  # cosine similarity with [1, 0] is exactly `score`
+    monkeypatch.setattr(store, "load_for_owner", lambda owner, kind: [
+        (1, "pancakes", vec(0.77)), (2, "bridge", vec(0.43)), (3, "castle", vec(0.34)), (4, "crepes", vec(0.60)),
+    ])
+    assert [ref for ref, _, _ in rag.search(1, "VIDEO", "street food", 10)] == [1, 4]
+
+
 def test_search_ranks_by_best_chunk_and_drops_noise(monkeypatch):
     monkeypatch.setattr(twelvelabs_client, "embed_text", lambda text: [1.0, 0.0])
     monkeypatch.setattr(store, "load_for_owner", lambda owner, kind: [
@@ -164,3 +175,9 @@ def test_empty_sdk_answers(monkeypatch):
     monkeypatch.setattr(twelvelabs_client, "client", sdk)
     assert twelvelabs_client.summarize("a") is None
     assert twelvelabs_client.embed_text("t") is None
+
+
+def test_search_with_nothing_relevant_returns_nothing(monkeypatch):
+    monkeypatch.setattr(twelvelabs_client, "embed_text", lambda text: [1.0, 0.0])
+    monkeypatch.setattr(store, "load_for_owner", lambda owner, kind: [(1, "unrelated", [0.1, 1.0])])
+    assert rag.search(1, "VIDEO", "q", 5) == []

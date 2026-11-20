@@ -61,7 +61,9 @@ export async function restoreSession(): Promise<boolean> {
     const tokenResponse = await axios.post(
       `${backendURL}/refresh-token`,
       {},
-      { withCredentials: true } // Sends refresh token cookie
+      // Sends the refresh token cookie. A backend that doesn't answer within a few seconds is
+      // treated as "not logged in" rather than leaving the page waiting
+      { withCredentials: true, timeout: 6000 }
     );
 
     const accessToken = tokenResponse.headers.authorization;

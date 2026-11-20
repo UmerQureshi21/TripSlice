@@ -231,8 +231,32 @@ describe("App", () => {
     tokenManager.clearToken();
     window.history.pushState({}, "", "/app/dashboard");
     render(<App />);
-    expect(screen.getByText("Loading...")).toBeInTheDocument();
+    // Logged-in pages wait briefly for the session check, then go to login
+    expect(screen.getByText("Checking your session...")).toBeInTheDocument();
     expect(await screen.findByText("Welcome back")).toBeInTheDocument();
+  });
+
+  it("shows public pages straight away, even when the backend never answers", async () => {
+    vi.mocked(restoreSession).mockReturnValue(new Promise(() => {})); // never resolves
+    tokenManager.clearToken();
+    setWidth(1200);
+    window.history.pushState({}, "", "/account");
+    render(<App />);
+    expect(await screen.findByText("Welcome back")).toBeInTheDocument();
+    expect(screen.queryByText(/Loading|Checking your session/)).toBeNull();
+  });
+
+  it("skips the session check when already logged in", async () => {
+    vi.mocked(restoreSession).mockClear();
+    vi.mocked(axiosInstance.get).mockResolvedValue({ data: [] });
+    vi.mocked(getAllVideos).mockResolvedValue([]);
+    tokenManager.setToken("Bearer t");
+    setWidth(1200);
+    window.history.pushState({}, "", "/app/videos");
+    render(<App />);
+    expect(await screen.findByText("0 of 15 videos")).toBeInTheDocument();
+    expect(restoreSession).not.toHaveBeenCalled();
+    tokenManager.clearToken();
   });
 
   it("lets logged in users into the app and shows 404s", async () => {
@@ -243,7 +267,7 @@ describe("App", () => {
     setWidth(1200);
     window.history.pushState({}, "", "/app/videos");
     render(<App />);
-    expect(await screen.findByText(/You have 0 of 15/)).toBeInTheDocument();
+    expect(await screen.findByText("0 of 15 videos")).toBeInTheDocument();
     tokenManager.clearToken();
 
     window.history.pushState({}, "", "/nowhere");
